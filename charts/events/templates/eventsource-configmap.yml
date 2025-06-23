@@ -1,0 +1,23 @@
+{{- if eq .Values.action "configmap" }}
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: event-{{ .Values.name }}
+  labels:
+spec:
+  template:
+    serviceAccountName: event-{{ .Values.name }}
+  resource:
+    event-{{ .Values.name }}:
+      eventTypes:
+        - "UPDATE"
+      group: ""
+      version: "v1"
+      resource: "configmaps"
+      namespace: {{ .Release.Namespace }}
+      filter:
+        fields:
+          - key: "metadata.name"
+            operation: "=="
+            value: "event-{{ .Values.name }}"
+{{- end }}

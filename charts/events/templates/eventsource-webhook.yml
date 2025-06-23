@@ -1,0 +1,20 @@
+{{- if eq .Values.action "webhook" }}
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: event-{{ .Values.name }}
+  labels:
+spec:
+  template:
+    serviceAccountName: event-{{ .Values.name }}
+  service:
+    name: "event-{{ .Values.name }}-eventsource-svc"
+    ports:
+      - port: 12000
+        targetPort: 12000
+  webhook:
+    event-{{ .Values.name }}:
+      port: "12000"
+      endpoint: /
+      method: POST
+{{- end }}

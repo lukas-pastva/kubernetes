@@ -1,0 +1,54 @@
+{{- range .Values.workflowTemplates }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: template-{{ .name }}
+spec:
+  entrypoint: template-{{ .name }}
+  serviceAccountName: event-{{ $.Values.name }}
+  templates:
+    - container:d
+      {{- if eq .name "deploy" }}{{ include "deploy" $ | nindent 8 }}{{ end }}
+      {{- if eq .name "stop" }}{{ include "stop" $ | nindent 8 }}{{ end }}
+
+        command:
+          - /bin/bash
+          - '-c'
+        image: {{ .image | default "lukaspastva/bashie:7804ec3b323124db172df3466e0a5c0046cfb941" }}
+        env:
+        {{- if .env }}{{- .env | toYaml | nindent 10 }}{{- end }}
+        volumeMounts:
+          - mountPath: /etc/secrets
+            name: volume-secrets
+            readOnly: true
+        {{- if .volumeMounts }}{{- .volumeMounts | toYaml | nindent 10 }}{{- end }}
+      inputs:
+        parameters:
+        {{- range $.Values.parameters  }}
+          - name: var_{{ .name }}
+        {{- end }}
+      name: template-{{ .name }}
+      volumes:
+        - name: volume-secrets
+          secret:
+            secretName: event-{{ $.Values.name }}
+      {{- if .volumes }}{{- .volumes | toYaml | nindent 8 }}{{- end }}
+      {{- if .securityContext }}
+      securityContext:
+        {{- .securityContext | toYaml | nindent 8 }}
+      {{- end }}
+
+{{- end }}
+
+{{- define "deploy" -}}
+args:
+- |
+{{ .Files.Get "files/_deploy.sh" | indent 2 }}
+{{- end }}
+
+{{- define "stop" -}}
+args:
+- |
+{{ .Files.Get "files/_stop.sh" | indent 2 }}
+{{- end }}

@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: event-{{ .Values.name }}
+spec:
+  dependencies:
+    - eventName: event-{{ .Values.name }}
+      eventSourceName: event-{{ .Values.name }}
+      name: event-{{ .Values.name }}
+  template:
+    serviceAccountName: event-{{ .Values.name }}
+  triggers:
+    - template:
+        k8s:
+          group: argoproj.io
+          operation: create
+          parameters:
+          {{- range $sensorParameter := .Values.sensorParameters }}
+            - dest: metadata.labels.{{ $sensorParameter.name }}
+              src:
+                dataKey: body.{{ $sensorParameter.name }}
+                dependencyName: event-{{ $.Values.name }}
+          {{- end }}
+          {{- if eq .Values.action "webhook" }}
+            - dest: spec.arguments.parameters.0.value
+              src:
+                dataKey: body
+                dependencyName: event-{{ .Values.name }}
+          {{- end }}
+          resource: workflows
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: event-{{ .Values.name }}-
+                labels: {}
+              spec:
+                arguments:
+                  parameters:
+                {{- if eq .Values.action "webhook" }}
+                    - name: event-data
+                      value: ''
+                {{- end }}
+                    - name: cm-body
+                      value: ""
+                workflowTemplateRef:
+                  name: event-{{ .Values.name }}
+          version: v1alpha1
+        name: event-{{ .Values.name }}

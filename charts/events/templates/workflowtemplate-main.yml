@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: event-{{ .Values.name }}
+  annotations:
+    ui.argoproj.io/description: {{ .Values.description | default "no description provided" | quote }}
+    {{- if $.Values.parameters }}
+    ui.argoproj.io/parameters: |
+      {{- range $parameter := $.Values.parameters  }}
+        - name: var_{{ .name }}
+          base64: {{ .base64 }}
+          defaultValue: {{ .defaultValue }}
+      {{- end }}
+    {{- end }}
+spec:
+  {{- if eq .Values.action "webhook" }}
+  arguments:
+    parameters:
+      - name: event-data
+  {{- end }}
+  entrypoint: event-{{ .Values.name }}
+  serviceAccountName: event-{{ .Values.name }}
+  templates:
+    - name: event-{{ .Values.name }}
+      steps:
+        - - name: "{{ .Values.name }}-setup"
+            {{- if eq .Values.action "webhook" }}
+            arguments:
+              parameters:
+                - name: event-data
+                  value: '{{ "{{" }}workflow.parameters.event-data}}'
+            {{- end }}
+            templateRef:
+              name: template-{{ .Values.name }}-setup
+              template: template-{{ .Values.name }}-setup
+        {{- range $workflowTemplate := .Values.workflowTemplates }}
+        - - name: "event-{{ $workflowTemplate.name }}"
+            {{- if $.Values.parameters }}
+            arguments:
+              parameters:
+              {{- range $parameter := $.Values.parameters  }}
+                - name: var_{{ .name }}
+                  value: >-
+                    {{ "{{" }}steps.{{ $.Values.name }}-setup.outputs.parameters.var_{{ $parameter.name }}}}
+              {{- end }}
+            {{- end }}
+            templateRef:
+              name: template-{{ $workflowTemplate.name }}
+              template: template-{{ $workflowTemplate.name }}
+        {{- end }}

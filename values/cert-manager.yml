@@ -1,0 +1,41 @@
+installCRDs: true
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+prometheus:
+  enabled: false
+  servicemonitor:
+    enabled: true
+webhook:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 30Mi
+cainjector:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 30Mi
+startupapicheck:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 30Mi
+
+extraObjects:
+  - |
+    apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt-prod
+    spec:
+      acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        email: info@lukaspastva.sk
+        privateKeySecretRef:
+          name: letsencrypt-prod
+        solvers:
+          - http01:
+              ingress:
+                class: nginx

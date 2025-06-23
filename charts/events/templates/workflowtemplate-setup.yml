@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: template-{{ .Values.name }}-setup
+spec:
+  entrypoint: template-{{ .Values.name }}-setup
+  serviceAccountName: event-{{ .Values.name }}
+  templates:
+    - container:
+        args:
+          - >
+            #!/bin/bash
+
+            set -e
+
+            {{- range .Values.parameters }}
+
+            var_{{ .name }}=$(echo -e '{{ "{{" }}inputs.parameters.event-data{{ "}}" }}' | jq -r '.{{ .name }}'{{ if .base64 }} | base64 -d{{ end }})
+
+            echo -n "$var_{{ .name }}" >/tmp/var_{{ .name }}.txt
+
+            echo "{{ .name }}: $var_{{ .name }}"
+
+            {{- end }}
+        command:
+          - /bin/bash
+          - '-c'
+        image: lukaspastva/bashie:7804ec3b323124db172df3466e0a5c0046cfb941
+        volumeMounts:
+          - mountPath: /etc/secrets
+            name: volume-secrets
+            readOnly: true
+      {{- if eq .Values.action "webhook" }}
+      inputs:
+        parameters:
+          - name: event-data
+      {{- end }}  
+      name: template-{{ .Values.name }}-setup
+      outputs:
+        parameters:
+          {{- range .Values.parameters }}
+          - name: var_{{ .name }}
+            valueFrom:
+              path: /tmp/var_{{ .name }}.txt
+          {{- end }}
+      volumes:
+        - name: volume-secrets
+          secret:
+            secretName: event-{{ .Values.name }}

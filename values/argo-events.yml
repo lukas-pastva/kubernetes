@@ -1,0 +1,4 @@
+controller:
+  rbac:
+    enabled: true
+    namespaced: true

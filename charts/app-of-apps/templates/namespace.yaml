@@ -1,0 +1,12 @@
+{{- range .Values.appProjects }}
+  {{- if .doNotCreateNamespace }}
+---
+  {{- else }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .name }}
+  labels:
+  {{- end }}
+{{- end }}

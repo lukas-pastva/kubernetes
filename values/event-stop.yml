@@ -1,0 +1,19 @@
+name: stop
+action: webhook
+description: "Event used to stop ArgoCD application (delete deployments)."
+parameters:
+  - name: name
+    base64: false
+workflowTemplates:
+- name: stop
+  env:
+  - name: ARGOCD_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: event-stop
+        key: ARGOCD_USERNAME
+  - name: ARGOCD_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: event-stop
+        key: ARGOCD_PASSWORD

@@ -1,0 +1,41 @@
+name: deploy
+action: webhook
+description: "Event used to deploy new version of application into ArgoCD."
+parameters:
+  - name: name
+    base64: false
+  - name: version
+    base64: false
+workflowTemplates:
+- name: deploy
+  env:
+  - name: ARGOCD_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: event-deploy
+        key: ARGOCD_USERNAME
+  - name: ARGOCD_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: event-deploy
+        key: ARGOCD_PASSWORD
+  - name: GIT_SSH_KEY
+    valueFrom:
+      secretKeyRef:
+        name: event-deploy
+        key: GIT_SSH_KEY
+  - name: GITOPS_REPO
+    valueFrom:
+      secretKeyRef:
+        name: event-deploy
+        key: GITOPS_REPO
+  - name: GIT_USER
+    valueFrom:
+      secretKeyRef:
+        name: event-deploy
+        key: GIT_USER
+  - name: GIT_EMAIL
+    valueFrom:
+      secretKeyRef:
+        name: event-deploy
+        key: GIT_EMAIL

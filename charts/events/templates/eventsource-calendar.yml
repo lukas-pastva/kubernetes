@@ -1,0 +1,13 @@
+{{- if eq .Values.action "calendar" }}
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: event-{{ .Values.name }}
+  labels:
+spec:
+  template:
+    serviceAccountName: event-{{ .Values.name }}
+  calendar:
+    event-{{ .Values.name }}:
+      schedule: {{ .Values.schedule | default "0 3 * * 1" }}
+{{- end }}

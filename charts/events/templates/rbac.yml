@@ -1,0 +1,55 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: event-{{ .Values.name }}
+rules:
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - applications
+      - workflowtasksets
+      - workflowtasksets/status
+      - workflowartifactgctasks
+      - workflowartifactgctasks/status
+      - workflows
+      - workflows/finalizers
+      - workflowtemplates
+      - workflowtaskresults
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - create
+      - update
+      - delete
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+      - pods/exec
+      - pods/log
+      - events
+      - configmaps
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - create
+      - update
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: event-{{ .Values.name }}
+subjects:
+  - kind: ServiceAccount
+    name: event-{{ .Values.name }}
+roleRef:
+  kind: Role
+  name: event-{{ .Values.name }}
+  apiGroup: rbac.authorization.k8s.io

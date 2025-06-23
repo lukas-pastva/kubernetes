@@ -1,0 +1,60 @@
+appProjects:
+
+- name: argo-workflows
+  applications:
+  - name: argo-events
+    repoURL: https://argoproj.github.io/argo-helm
+    targetRevision: 2.4.15
+    chart: argo-events
+    autoSync: true
+    valueFiles: true
+  - name: argo-workflows
+    repoURL: https://argoproj.github.io/argo-helm
+    targetRevision: 0.45.15
+    chart: argo-workflows
+    autoSync: true
+    valueFiles: true
+  - name: argo-workflows-ui
+    repoURL: https://lukas-pastva.github.io/helm-chartie/
+    targetRevision: 1.0.7
+    chart: helm-chartie
+    autoSync: false
+    valueFiles: true
+  - name: event-stop
+    repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+    path: charts/events
+    autoSync: false
+    valueFiles: true
+  - name: event-deploy
+    repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+    path: charts/events
+    autoSync: false
+    valueFiles: true
+
+- name: cert-manager
+  applications:
+  - name: cert-manager
+    repoURL: https://charts.jetstack.io
+    targetRevision: 1.16.0
+    chart: cert-manager
+    autoSync: true
+    valueFiles: true
+
+- name: ingress-browser
+  applications:
+  - name: ingress-browser
+    repoURL: https://lukas-pastva.github.io/helm-chartie/
+    targetRevision: 1.0.7
+    chart: helm-chartie
+    autoSync: false
+    valueFiles: true
+
+- name: ingress-nginx
+  applications:
+  - name: ingress-nginx
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    targetRevision: 4.12.2
+    chart: ingress-nginx
+    skipCrds: true
+    autoSync: true
+    valueFiles: true
