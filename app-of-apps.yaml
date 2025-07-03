@@ -2,7 +2,7 @@ appProjects:
   - name: oauth2-proxy
     applications:
       - name: oauth2-proxy
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/oauth2-proxy/oauth2-proxy/7.9.0
         autoSync: true
         valueFiles: true
@@ -10,72 +10,72 @@ appProjects:
   - name: argo-workflows
     applications:
       - name: argo-events
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/argo/argo-events/2.4.15
         autoSync: true
         valueFiles: true
       - name: argo-workflows
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/argo/argo-workflows/0.45.19
         autoSync: true
         valueFiles: true
       - name: argo-workflows-ui
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.7
         autoSync: false
         valueFiles: true
       - name: event-backup-gl
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: event-backup-gh
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: event-backup-k8s
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: event-stop
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: event-deploy
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: event-install
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: event-upgrade
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: event-download
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: event-delete
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: false
         valueFiles: true
       - name: argo-helm-toggler
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.7
         autoSync: true
         valueFiles: true
       - name: argo-app-forge
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.7
         autoSync: true
         valueFiles: true
@@ -83,49 +83,49 @@ appProjects:
     doNotCreateNamespace: true
     applications:
       - name: secrets
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/secrets
         autoSync: true
         valueFiles: true
   - name: web-example
     applications:
       - name: web-example
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.7
         autoSync: false
         valueFiles: true
   - name: ingress-browser
     applications:
       - name: ingress-browser
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.7
         autoSync: false
         valueFiles: true
   - name: cert-manager
     applications:
       - name: cert-manager
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/cert-manager/cert-manager/1.18.2
         autoSync: true
         valueFiles: true
   - name: onepassword-connect
     applications:
       - name: onepassword-connect
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/onepassword-connect/connect/1.17.1
         autoSync: true
         valueFiles: true
   - name: csi-s3
     applications:
       - name: csi-s3
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/k8s-csi-s3/csi-s3/0.43.0
         autoSync: false
         valueFiles: true
   - name: ingress-nginx
     applications:
       - name: ingress-nginx
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/ingress-nginx/ingress-nginx/4.12.3
         autoSync: true
         valueFiles: true
