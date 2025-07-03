@@ -19,26 +19,21 @@ This is an internal GitOps-based Kubernetes platform integrating **RKE2**, **Ran
 ```
 argocd/
   ├── app-of-apps.yaml
-  ├── install-rke2.md
   └── README.md
 
 charts/
   ├── external/
   └── internal/
-      ├── app-of-apps/
-      ├── rancher/
-      └── events/
+
+scripts/
+  ├── 1-install-worker.sh
+  └── 2-install-control-plane.sh
+
 
 values/
   ├── argo-events.yaml
-  ├── argo-workflows-ui.yaml
-  ├── argo-workflows.yaml
-  ├── argocd.yaml
-  ├── cert-manager.yaml
-  ├── event-deploy.yaml
-  ├── event-stop.yaml
-  ├── ingress-browser.yaml
-  └── ingress-nginx.yaml
+  ├── ...
+  ├── ...
 ```
 
 ---
