@@ -1,0 +1,22 @@
+name: backup-k8s
+action: calendar
+description: "Is ran each day at 3 am, feel free to run at any time."
+workflowTemplates:
+- name: backup-k8s
+  image: lukaspastva/conveior:70ab919f6c7a09a026f94d5df688811f97c599d6
+  env:
+    - name: EVENT_DRIVEN
+      value: 'true'
+    - name: CONFIG_FILE_DIR
+      value: "/tmp/config/config.yaml"
+  volumeMounts:
+    - name: config-volume
+      mountPath: "/tmp/config/config.yaml"
+      subPath: "config.yaml"
+  volumes:
+    - name: config-volume
+      secret:
+        secretName: event-backup-k8s
+        items:
+          - key: config.yaml
+            path: config.yaml

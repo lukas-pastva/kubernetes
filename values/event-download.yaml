@@ -1,0 +1,37 @@
+name: download
+action: webhook
+description: "Event used to download new version of application into ArgoCD."
+parameters:
+  - name: chart
+    base64: false
+  - name: repo
+    base64: false
+  - name: version
+    base64: false
+  - name: release
+    base64: false
+  - name: owner
+    base64: false 
+workflowTemplates:
+- name: download
+  env:
+  - name: GIT_SSH_KEY
+    valueFrom:
+      secretKeyRef:
+        name: event-download
+        key: GIT_SSH_KEY
+  - name: GITOPS_REPO
+    valueFrom:
+      secretKeyRef:
+        name: event-download
+        key: GITOPS_REPO
+  - name: GIT_USER
+    valueFrom:
+      secretKeyRef:
+        name: event-download
+        key: GIT_USER
+  - name: GIT_EMAIL
+    valueFrom:
+      secretKeyRef:
+        name: event-download
+        key: GIT_EMAIL

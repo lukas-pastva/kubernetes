@@ -1,0 +1,11 @@
+controller:
+  ingressClassResource:
+    default: true
+  hostNetwork: true
+  service:
+    enabled: false
+  config:
+    proxy-body-size: "50000m"
+    proxy-read-timeout: "60000"
+    proxy-send-timeout: "60000"
+    proxy-connect-timeout: "60000"

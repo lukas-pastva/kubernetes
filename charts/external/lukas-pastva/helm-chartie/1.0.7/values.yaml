@@ -1,0 +1,56 @@
+#nodeAffinity:
+#  - key: asdf
+#    values:
+#      - asdf
+#      - fdsa
+#secretRegistry: "ZW1wdHk=" # or "true" if stored in another application
+
+deployments: {}
+#  conveior:
+#    image: registry.hub.docker.com/lukaspastva/conveior-web:0.1.44
+#    resourcesSimple: 80
+#    replicaCount: 1
+#    roleRules: []
+#    clusterRules: []
+#    rbacDisabled: false
+#    serviceExternalName: www.google.com
+#    serviceAccountName: default
+#    doNotCreateServiceAccount: false
+#    extraServiceAccounts:
+#      conveior:
+#        namespace: conveior
+#    podSecurityContextRestricted: true
+#    podSecurityContext:
+#      securityContext: {}
+#    labels:
+#      checksum: {{ include (print $.Template.BasePath "/cm-application.yaml") . | sha256sum }}
+#    annotations:
+#      vault.hashicorp.com/agent-inject: "true"
+#      vault.hashicorp.com/role: "myapp-role"
+#      vault.hashicorp.com/agent-inject-secret-s3-asdf: "kv/data/asdf/asdf"
+#
+#    ports:
+#      - name: http
+#        port: 80
+#        portIngress: 8088 # some k8s not working when port 80, so this optional field can be used
+#        domains:
+#          - "conveior.tronic.sk"
+#          - "www.tronic.sk"
+#          - "www.lukaspastva.sk"
+#        paths:
+#          - "/"
+#    serviceMonitor:
+#      enabled: true
+#      interval: 60s #optional
+#      release: sys-monitoring #optional
+#    networkPolicy:
+#      enabled: true
+#      destinationNamespace: monitoring
+#      destinationPod: "kube-prometheus-stack-prometheus"
+#configMaps:
+#  - name: config
+#    data:
+#      key1: value1
+#      key2: value2
+
+extraObjects: []

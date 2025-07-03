@@ -1,6 +1,0 @@
-controller:
-  ingressClassResource:
-    default: true
-  hostNetwork: true
-  service:
-    enabled: false

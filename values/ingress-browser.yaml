@@ -1,0 +1,50 @@
+secretRegistry: "web-secrets-registry"
+deployments:
+
+  ingress-browser:
+    image: lukaspastva/web-ingress-browser:36bbd54cdc4ba22e88118bb69f07edb64fd9f903
+    resources:
+      limits:
+        memory: 90Mi
+      requests:
+        cpu: 50m
+        memory: 50Mi
+    podSecurityContextRestricted: true
+    ports:
+      - name: http
+        port: 8080
+        domains:
+          - "ingress.tronic.sk"
+        paths:
+          - "/"
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: https://oauth2-google.tronic.sk/oauth2/start?rd=$scheme://$http_host$request_uri
+          nginx.ingress.kubernetes.io/auth-url: https://oauth2-google.tronic.sk/oauth2/auth
+    volumes:
+      - type: emptyDir
+        name: tmp
+        mountPath: /tmp
+
+extraObjects:
+  - |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      name: ingress-browser
+    rules:
+      - apiGroups: ["networking.k8s.io"]
+        resources: ["ingresses"]
+        verbs: ["get", "list"]
+  - |
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      name: ingress-browser
+    subjects:
+      - kind: ServiceAccount
+        name: ingress-browser
+        namespace: ingress-browser
+    roleRef:
+      kind: ClusterRole
+      name: ingress-browser
+      apiGroup: rbac.authorization.k8s.io

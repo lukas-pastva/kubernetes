@@ -1,0 +1,41 @@
+name: upgrade
+action: webhook
+description: "Event used to upgrade new version of application into ArgoCD."
+parameters:
+  - name: name
+    base64: false
+  - name: version
+    base64: false
+workflowTemplates:
+- name: upgrade
+  env:
+  - name: ARGOCD_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: event-upgrade
+        key: ARGOCD_USERNAME
+  - name: ARGOCD_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: event-upgrade
+        key: ARGOCD_PASSWORD
+  - name: GIT_SSH_KEY
+    valueFrom:
+      secretKeyRef:
+        name: event-upgrade
+        key: GIT_SSH_KEY
+  - name: GITOPS_REPO
+    valueFrom:
+      secretKeyRef:
+        name: event-upgrade
+        key: GITOPS_REPO
+  - name: GIT_USER
+    valueFrom:
+      secretKeyRef:
+        name: event-upgrade
+        key: GIT_USER
+  - name: GIT_EMAIL
+    valueFrom:
+      secretKeyRef:
+        name: event-upgrade
+        key: GIT_EMAIL

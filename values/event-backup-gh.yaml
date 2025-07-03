@@ -1,0 +1,32 @@
+name: backup-gh
+action: calendar
+description: "Is ran each day at 2 am, feel free to run at any time."
+schedule: "0 2 * * 2"
+workflowTemplates:
+- name: backup-gh
+  env:
+    - name: GIT_TOKEN_READ
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gh
+          key: GIT_TOKEN_READ
+    - name: BACKUP_S3_KEY
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gh
+          key: BACKUP_S3_KEY
+    - name: BACKUP_S3_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gh
+          key: BACKUP_S3_SECRET
+    - name: BACKUP_S3_URL
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gh
+          key: BACKUP_S3_URL
+    - name: BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gh
+          key: BUCKET_NAME

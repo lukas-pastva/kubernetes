@@ -1,0 +1,23 @@
+{{- range $item_name, $item := .Values.deployments }}
+  {{- if $item.clusterRules }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $item_name }}
+rules: {{- if $item.clusterRules }} {{ $item.clusterRules | toYaml | nindent 2 }}{{ else }} []{{ end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $item_name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $item_name }}
+    namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ $item_name }}
+  apiGroup: rbac.authorization.k8s.io       
+  {{- end }}
+{{- end }}

@@ -1,0 +1,5 @@
+storageClass:
+  singleBucket: "tronic.sk"
+
+secret:
+  create: false

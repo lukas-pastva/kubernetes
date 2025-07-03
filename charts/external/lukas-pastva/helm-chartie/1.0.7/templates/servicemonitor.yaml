@@ -1,0 +1,25 @@
+{{- range $item_name, $item := .Values.deployments }}
+  {{- if and $item.serviceMonitor ($item.serviceMonitor.enabled) }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $item_name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: {{ $item_name }}
+    release: {{ $item.serviceMonitor.release | default "sys-monitoring" }}
+spec:
+  endpoints:
+    - path: /metrics
+      port: http
+      scheme: http
+      interval: {{ $item.serviceMonitor.interval | default "60s" }}
+  namespaceSelector:
+    matchNames:
+      - {{ $.Release.Namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $item_name }}
+  {{- end }}
+{{- end }}

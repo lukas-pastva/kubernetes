@@ -116,7 +116,7 @@ spec:
                 targetRevision: main
                 helm:
                   valueFiles:
-                  - ../../applications.yml
+                  - ../../applications.yaml
               destination:
                 namespace: argocd
                 name: in-cluster

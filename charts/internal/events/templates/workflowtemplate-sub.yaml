@@ -1,0 +1,105 @@
+{{- range .Values.workflowTemplates }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: template-{{ .name }}
+spec:
+  entrypoint: template-{{ .name }}
+  serviceAccountName: event-{{ $.Values.name }}
+  templates:
+    - container:
+      {{- if eq .name "mail-send" }}{{ include "mail-send" $ | nindent 8 }}{{ end }}
+      {{- if eq .name "terraform" }}{{ include "terraform" $ | nindent 8 }}{{ end }}
+      {{- if eq .name "backup-gl" }}{{ include "backup-gl" $ | nindent 8 }}{{ end }}
+      {{- if eq .name "backup-gh" }}{{ include "backup-gh" $ | nindent 8 }}{{ end }}
+      {{- if eq .name "backup-k8s" }}{{ include "backup-k8s" $ | nindent 8 }}{{ end }}
+      {{- if eq .name "deploy" }}{{ include "deploy" $ | nindent 8 }}{{ end }}
+      {{- if eq .name "stop" }}{{ include "stop" $ | nindent 8 }}{{ end }}
+
+      {{- if eq .name "install" }}{{ include "install" $ | nindent 8 }}{{ end }}
+      {{- if eq .name "download" }}{{ include "download" $ | nindent 8 }}{{ end }}
+
+
+        command:
+          - /bin/bash
+          - '-c'
+        image: {{ .image | default "lukaspastva/bashie:4aebf32c0551806d6028ce74f0d34afdc7d90f12" }}
+        env:
+        {{- if .env }}{{- .env | toYaml | nindent 10 }}{{- end }}
+        volumeMounts:
+          - mountPath: /etc/secrets
+            name: volume-secrets
+            readOnly: true
+        {{- if .volumeMounts }}{{- .volumeMounts | toYaml | nindent 10 }}{{- end }}
+      inputs:
+        parameters:
+        {{- range $.Values.parameters  }}
+          - name: var_{{ .name }}
+        {{- end }}
+      name: template-{{ .name }}
+      volumes:
+        - name: volume-secrets
+          secret:
+            secretName: event-{{ $.Values.name }}
+      {{- if .volumes }}{{- .volumes | toYaml | nindent 8 }}{{- end }}
+      {{- if .securityContext }}
+      securityContext:
+        {{- .securityContext | toYaml | nindent 8 }}
+      {{- end }}
+
+{{- end }}
+
+{{- define "mail-send" -}}
+args:
+- |
+{{ .Files.Get "files/_mail-send.sh" | indent 2 }}
+{{- end }}
+
+{{- define "terraform" -}}
+args:
+- |
+{{ .Files.Get "files/_terraform.sh" | indent 2 }}
+{{- end }}
+
+{{- define "backup-gl" -}}
+args:
+- |
+{{ .Files.Get "files/_backup-gl.sh" | indent 2 }}
+{{- end }}
+
+{{- define "backup-gh" -}}
+args:
+- |
+{{ .Files.Get "files/_backup-gh.sh" | indent 2 }}
+{{- end }}
+
+{{- define "backup-k8s" -}}
+args:
+- |
+{{ .Files.Get "files/_backup-k8s.sh" | indent 2 }}
+{{- end }}
+
+{{- define "deploy" -}}
+args:
+- |
+{{ .Files.Get "files/_deploy.sh" | indent 2 }}
+{{- end }}
+
+{{- define "stop" -}}
+args:
+- |
+{{ .Files.Get "files/_stop.sh" | indent 2 }}
+{{- end }}
+
+{{- define "install" -}}
+args:
+- |
+{{ .Files.Get "files/_install.sh" | indent 2 }}
+{{- end }}
+
+{{- define "download" -}}
+args:
+- |
+{{ .Files.Get "files/_download.sh" | indent 2 }}
+{{- end }}

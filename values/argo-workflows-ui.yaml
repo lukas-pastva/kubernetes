@@ -1,0 +1,38 @@
+deployments:
+
+  argo-workflows-ui:
+    image: lukaspastva/argo-workflows-ui:8164756d8212065c384408583e9bd9df09c7a64b
+    resources:
+      limits:
+        memory: 400Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+    # podSecurityContextRestricted: true
+    serviceAccountExternal: argo-workflows-workflow-controller
+    doNotCreateServiceAccount: true
+    ports:
+      - name: http
+        port: 8080
+        domains:
+          - "deploy.tronic.sk"
+        paths:
+          - "/"
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: https://oauth2-google.tronic.sk/oauth2/start?rd=$scheme://$http_host$request_uri
+          nginx.ingress.kubernetes.io/auth-url: https://oauth2-google.tronic.sk/oauth2/auth
+    env:
+      - name: VITE_HEADER_BG
+        value: "#0f2733s"
+      - name: DEBUG_LOGS
+        value: "true"
+      - name: POD_NAMESPACE
+        value: "argo-workflows"
+      - name: VITE_SKIP_LABELS
+        value: "events.argoproj.io/action-timestamp,workflows.argoproj.io/creator,events.argoproj.io/trigger,workflows.argoproj.io/completed"
+      - name: VITE_COLLAPSED_LABEL_GROUPS
+        value: "git-revision"
+      - name: VITE_LABEL_PREFIX_TRIM
+        value: "workflows.argoproj.io/,events.argoproj.io/"
+      - name: VITE_LIST_LABEL_COLUMNS
+        value: "workflow-template"

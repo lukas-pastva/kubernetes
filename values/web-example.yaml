@@ -1,0 +1,79 @@
+deployments:
+  web-example:
+    image: lukaspastva/web-player:ab2dcde9dc3ec3969bfb82a3206350b2fb49f7cc
+    resources:
+      limits:
+        memory: 120Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+    # podSecurityContextRestricted: true
+    extraServiceAccounts:
+      event-backup-k8s:
+        namespace: argo-workflows
+    roleRules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["list", "get"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["create", "get"]
+    ports:
+      - name: http
+        port: 8080
+        domains:
+          - "tronic.sk"
+          - "www.tronic.sk"
+        paths:
+          - "/"
+    volumeMountsFull:
+      - name: intro
+        mountPath: /etc/web-player/config
+        readOnly: true
+    volumesFull:
+      - name: intro
+        configMap:
+          name: intro
+
+extraObjects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: intro
+    data:
+      intro.md: |
+        This is example web page
+        ---
+ 
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: argo-event-role
+    rules:
+      - apiGroups:
+          - apps
+        resources:
+          - deployments
+        verbs:
+          - get
+          - list
+          - watch
+          - patch
+          - create
+          - update
+          - delete
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: argo-event-role
+    subjects:
+      - kind: ServiceAccount
+        name: event-stop
+        namespace: argo-workflows
+      - kind: ServiceAccount
+        name: event-deploy
+        namespace: argo-workflows
+    roleRef:
+      kind: Role
+      name: argo-event-role
+      apiGroup: rbac.authorization.k8s.io

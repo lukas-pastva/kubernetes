@@ -1,0 +1,31 @@
+name: backup-gl
+action: calendar
+description: "Is ran each day at 3 am, feel free to run at any time."
+workflowTemplates:
+- name: backup-gl
+  env:
+    - name: GIT_TOKEN_READ
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gl
+          key: GIT_TOKEN_READ
+    - name: BACKUP_S3_KEY
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gl
+          key: BACKUP_S3_KEY
+    - name: BACKUP_S3_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gl
+          key: BACKUP_S3_SECRET
+    - name: BACKUP_S3_URL
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gl
+          key: BACKUP_S3_URL
+    - name: BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: event-backup-gl
+          key: BUCKET_NAME

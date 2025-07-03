@@ -1,0 +1,46 @@
+deployments:
+
+  argo-helm-toggler:
+    image: lukaspastva/argo-helm-toggler:98c43deaa95c4d2ad1dcf278c9ff995400fe2093
+    resources:
+      limits:
+        memory: 400Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+    # podSecurityContextRestricted: true
+    ports:
+      - name: http
+        port: 8080
+        domains:
+          - "install.tronic.sk"
+        paths:
+          - "/"
+        annotations:
+          nginx.ingress.kubernetes.io/auth-signin: https://oauth2-google.tronic.sk/oauth2/start?rd=$scheme://$http_host$request_uri
+          nginx.ingress.kubernetes.io/auth-url: https://oauth2-google.tronic.sk/oauth2/auth
+    env:
+      - name: GIT_REPO_SSH
+        value: "git@github.com:lukaspastva/kubernetes.git"
+      - name: GIT_BRANCH
+        value: "main"
+      - name: GIT_SSH_KEY
+        valueFrom:
+          secretKeyRef:
+            name: git-ssh-read-helm-charts
+            key: GIT_REPO_SSH
+      - name: WF_WEBHOOK_URL
+        value: "http://event-install-eventsource-svc.argo-workflows.svc.cluster.local:12000"
+      - name: WF_DELETE_WEBHOOK_URL
+        value: "http://event-delete-eventsource-svc.argo-workflows.svc.cluster.local:12000"
+      - name: WF_DELETE_WEBHOOK_URL
+        value: "http://event-delete-eventsource-svc.argo-workflows.svc.cluster.local:12000"
+      - name: WF_DOWNLOAD_WEBHOOK_URL
+        value: "http://event-download-eventsource-svc.argo-workflows.svc.cluster.local:12000"
+      - name: APPS_GLOB
+        value: "app-of-apps.yaml"
+      - name: VALUES_SUBDIR
+        value: "values"
+      
+
+        

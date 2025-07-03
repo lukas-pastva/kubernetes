@@ -1,0 +1,59 @@
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: allow-event-{{ .Values.name }}-to-argocd-server
+#   namespace: argocd
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app.kubernetes.io/name: argocd-server
+#   policyTypes:
+#   - Ingress
+#   ingress:
+#   - from:
+#       - namespaceSelector:
+#           matchLabels:
+#             kubernetes.io/metadata.name: argo-workflows
+#     ports:
+#       - protocol: TCP
+#         port: 8080
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: allow-event-{{ .Values.name }}-egress
+#   namespace: argo-workflows
+# spec:
+#   podSelector: {}
+#   policyTypes:
+#   - Egress
+#   egress:
+#   - to:
+#       - namespaceSelector:
+#           matchLabels:
+#             kubernetes.io/metadata.name: argocd
+#         podSelector:
+#           matchLabels:
+#             app.kubernetes.io/name: argocd-server
+#     ports:
+#       - protocol: TCP
+#         port: 8080
+#   - to:
+#       - namespaceSelector:
+#           matchLabels:
+#             kubernetes.io/metadata.name: kube-system
+#         podSelector:
+#           matchLabels:
+#             k8s-app: kube-dns
+#     ports:
+#       - protocol: UDP
+#         port: 53
+#       - protocol: TCP
+#         port: 53
+#   - to:
+#       - ipBlock:
+#           cidr: 10.96.0.1/32
+#     ports:
+#       - protocol: TCP
+#         port: 443

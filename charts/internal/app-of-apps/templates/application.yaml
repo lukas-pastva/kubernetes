@@ -1,0 +1,59 @@
+{{- range $appProject := .Values.appProjects }}
+  {{- range $application := $appProject.applications }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $application.name }}
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: {{ $appProject.name }}
+  sources:
+  - {{- if $application.repoURL }}
+    repoURL: {{ $application.repoURL }}
+    {{ end }}
+    targetRevision: {{ $application.targetRevision | default "main" }}
+    {{- if $application.path }}
+    {{- if $application.directoryRecurse }}
+    directory:
+      recurse: true
+    {{ end }}
+    path: "charts/{{ $application.path }}"
+    {{ end }}
+    {{- if $application.chart }}
+    chart: {{ $application.chart }}
+    {{ end }}
+    helm:
+      {{- if $application.skipCrds }}
+      skipCrds: true
+      {{ end }}
+      {{- if $application.valuesObject }}
+      valuesObject: {{ $application.valuesObject | toYaml | nindent 8 }}
+      {{ end }}
+      {{- if $application.valueFiles }}
+      valueFiles:
+      - $values/values/{{ $application.name }}.yaml
+      {{- end }}
+  {{- if $application.valueFiles }}
+  - repoURL: git@github.com:lukaspastva/kubernetes.git
+    targetRevision: main
+    ref: values
+  {{ end }}
+  destination:
+    namespace: {{ $appProject.name }}
+    name: in-cluster
+  syncPolicy:
+    {{- if $application.autoSync }}
+    automated:
+      prune: true
+      selfHeal: true
+    {{ end }}
+    syncOptions:
+      - CreateNamespace=false
+    {{- if $application.replace }}
+      - Replace=true
+    {{ end }}
+  {{- end }}
+{{- end }}

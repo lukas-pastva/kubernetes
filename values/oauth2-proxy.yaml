@@ -1,0 +1,34 @@
+ingress:
+  enabled: true
+  hosts:
+    - oauth2-proxy.tronic.sk
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - secretName: cert-oauth2-proxy-pastvova-sk
+      hosts:
+        - oauth2-proxy.tronic.sk
+resources:
+  limits:
+    memory: 100Mi
+  requests:
+    cpu: 50m
+    memory: 60Mi
+config:
+  existingSecret: "oauth2-proxy-pastvova"
+  configFile: |-
+    upstreams = [ "file:///dev/null" ]
+    cookie_domains = ".tronic.sk"
+    email_domains = [ "tronic.sk" ]
+    scope = "openid profile email"
+    whitelist_domains = ".tronic.sk"
+    pass_authorization_header = true
+    pass_access_token = true
+    pass_user_headers = true
+    set_authorization_header = true
+    set_xauthrequest = true
+    cookie_refresh = "1h"
+    cookie_expire = "168h"
+serviceAccount:
+  enabled: true
+  name: oauth2-proxy-pastvova
