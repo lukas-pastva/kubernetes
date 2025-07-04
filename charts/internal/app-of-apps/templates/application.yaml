@@ -9,7 +9,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
-  project: {{ $appProject.name }}
+  project: {{ $appProject.namespace }}
   sources:
   - {{- if $application.repoURL }}
     repoURL: {{ $application.repoURL }}
@@ -42,7 +42,7 @@ spec:
     ref: values
   {{ end }}
   destination:
-    namespace: {{ $appProject.name }}
+    namespace: {{ $appProject.namespace }}
     name: in-cluster
   syncPolicy:
     {{- if $application.autoSync }}
