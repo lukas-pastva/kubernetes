@@ -38,7 +38,11 @@ echo "✔ RKE2 agent installation complete."
 echo "Wiping shell history…"
 unset HISTFILE
 history -c 2>/dev/null || true
-
 for h in /root/.bash_history "/home/${SUDO_USER:-}"/.bash_history; do
   [ -f "$h" ] && rm -f "$h"
 done
+
+# ────────────────────────────────────────────────────────────────
+# Self-destruct: remove this script after it finishes
+# ────────────────────────────────────────────────────────────────
+rm -- "$0" 2>/dev/null || true
