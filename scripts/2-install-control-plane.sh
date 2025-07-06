@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-read -s -p "Enter RKE2 server token: " TOKEN && echo
 (( EUID == 0 )) || { echo "ERROR: run as root." >&2; exit 1; }
 
 ###############################################################################
@@ -11,7 +10,11 @@ KUBE_USER="${SUDO_USER:-root}"
 USER_HOME="$(getent passwd "$KUBE_USER" | cut -d: -f6)"
 KUBE_DIR="$USER_HOME/.kube"
 ADMIN_KUBECONFIG="/etc/rancher/rke2/rke2.yaml"
+TOKEN="${RANCHER_TOKEN:-}"
 
+if [[ -z "$TOKEN" ]]; then
+  read -s -p "Enter RKE2 join token: " TOKEN && echo
+fi
 ###############################################################################
 # RKE2 control-plane install
 ###############################################################################
