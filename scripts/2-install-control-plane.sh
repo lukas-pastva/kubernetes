@@ -67,30 +67,59 @@ chmod 600 "${KUBE_DIR}/config"
 echo "Waiting for Kubernetes API..."
 until kubectl version --short >/dev/null 2>&1; do sleep 5; done
 
-# 11) Install Argo CD via Helm
-echo "Installing Argo CD in namespace argocd..."
-kubectl create ns argocd
+###############################################################################
+# 11) Argo CD installation with predefined admin password                     #
+###############################################################################
+if [[ -z "${ARGOCD_PASS:-}" ]]; then
+  read -s -p "Enter desired Argo CD admin password: " ARGOCD_PASS
+  echo
+fi
+
+echo "Installing Argo CD in namespace argocd…"
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
-helm -n argocd upgrade --install argocd argo/argo-cd --version 8.1.2
 
-# 12) Retrieve & show initial admin password
-echo
-echo "===== Argo CD initial admin password ====="
-PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-echo "${PASSWORD}"
-echo "=========================================="
-echo
-read -p "Press [ENTER] once you've copied the password to delete the secret..." _
-
-# 13) Securely delete the secret
-kubectl -n argocd delete secret argocd-initial-admin-secret
-echo "Argo CD initial-admin-secret has been deleted."
+helm upgrade --install argocd argo/argo-cd \
+  --namespace argocd --create-namespace \
+  --version 8.1.2 \
+  --set configs.secret.createSecret=true \
+  --set-string configs.secret.argocdServerAdminPassword="${ARGOCD_PASS}"
 
 echo
-echo "✔ RKE2, kubectl, k9s, Helm, and Argo CD are all installed."
+echo "✔ Argo CD installed."
+echo "   Username: admin"
+echo "   Password: ${ARGOCD_PASS}"
+echo
+
+###############################################################################
+# 12) OPTIONAL – Rancher bootstrap (only if Rancher was picked in AppForge)   #
+###############################################################################
+if [[ "${INSTALL_RANCHER:-false}" == "true" ]]; then
+  echo "Setting up Rancher bootstrap secret…"
+
+  # Ask for password if not provided
+  if [[ -z "${RANCHER_PASS:-}" ]]; then
+    read -s -p "Enter Rancher admin password (bootstrapPassword): " RANCHER_PASS
+    echo
+  fi
+
+  # Make sure the cattle-system namespace exists (idempotent)
+  kubectl get namespace cattle-system >/dev/null 2>&1 || \
+    kubectl create namespace cattle-system
+
+  # Create or update the bootstrap-secret with the password
+  kubectl -n cattle-system create secret generic bootstrap-secret \
+    --from-literal=bootstrapPassword="${RANCHER_PASS}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+  echo "✔ Rancher bootstrap-secret created/updated."
+fi
+###############################################################################
+
+echo
+echo "✔ RKE2, kubectl, k9s, Helm, Argo CD and (optionally) Rancher bootstrap are installed."
 echo "✔ kubeconfig is at ${KUBE_DIR}/config (owned by ${KUBE_USER})."
-echo "You can now interact with your cluster and Argo CD:"
+echo "You can now interact with your cluster:"
 echo "  kubectl get nodes"
 echo "  k9s"
 echo "  helm -n argocd list"
