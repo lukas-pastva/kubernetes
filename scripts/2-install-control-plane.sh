@@ -54,7 +54,7 @@ chown -R "$KUBE_USER":"$KUBE_USER" "$KUBE_DIR"
 chmod 600 "$KUBE_DIR/config"
 
 echo "Waiting for Kubernetes API…"
-until kubectl version --short >/dev/null 2>&1; do sleep 5; done
+until kubectl version >/dev/null 2>&1; do sleep 5; done
 
 ###############################################################################
 # Argo CD – password provided or prompted
