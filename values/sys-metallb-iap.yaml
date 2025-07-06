@@ -6,4 +6,4 @@ extraObjects:
     namespace: metallb-system
   spec:
     addresses:
-      - 65.21.57.213/32
+      - 95.216.221.118/32
