@@ -135,6 +135,7 @@ appProjects:
         path: external/ingress-nginx/ingress-nginx/4.12.3
         autoSync: true
         valueFiles: true
+        syncWave: "-1"
   - namespace: web-argo-helm-toggler
     applications:
       - name: web-argo-helm-toggler
@@ -186,8 +187,10 @@ appProjects:
         path: external/metallb/metallb/0.15.2
         autoSync: true
         valueFiles: true
+        syncWave: "-3"
       - name: sys-metallb-iap
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/lukas-pastva/helm-chartie/1.0.7
         autoSync: true
         valueFiles: true
+        syncWave: "-2"
