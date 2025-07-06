@@ -34,28 +34,6 @@ systemctl start  rke2-agent.service
 
 echo "✔ RKE2 agent installation complete."
 
-###############################################################################
-# HISTORY WIPE (invoking user + root)
-###############################################################################
-echo "Wiping shell history…"
-{
-  unset HISTFILE
-  history -c 2>/dev/null || true
-
-  wipe() {                    # truncate & divert future writes to /dev/null
-    local f="$1"; [ -e "$f" ] || return
-    : > "$f" || true
-    ln -sf /dev/null "$f" 2>/dev/null || true
-  }
-
-  wipe "$HOME/.bash_history"                  # current shell
-  [ -f /root/.bash_history ] && wipe /root/.bash_history
-
-  if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ]; then
-    u_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-    wipe "${u_home}/.bash_history"
-  fi
-} 2>/dev/null || true
 
 # ── self-destruct ────────────────────────────────────────────────────────────
 rm -- "$0" 2>/dev/null || true
