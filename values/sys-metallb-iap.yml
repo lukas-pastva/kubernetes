@@ -1,0 +1,9 @@
+extraObjects:
+- apiVersion: metallb.io/v1beta1
+  kind: IPAddressPool
+  metadata:
+    name: first-pool
+    namespace: metallb-system
+  spec:
+    addresses:
+      - 65.21.57.213/32

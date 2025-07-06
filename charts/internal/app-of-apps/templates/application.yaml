@@ -7,7 +7,7 @@ metadata:
   name: {{ $application.name }}
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: {{ $application.syncWave | default "0" | quote }}
 spec:
   project: {{ $appProject.namespace }}
   sources:
@@ -37,7 +37,7 @@ spec:
       - $values/values/{{ $application.name }}.yaml
       {{- end }}
   {{- if $application.valueFiles }}
-  - repoURL: git@github.com:lukaspastva/kubernetes.git
+  - repoURL: git@gitlab.com:tronic-sk/helm-charts.git
     targetRevision: main
     ref: values
   {{ end }}

@@ -1,0 +1,12 @@
+alertmanager:
+  ingress:
+    hosts:
+      - alertmanager.tronic.sk
+grafana:
+  ingress:
+    hosts:
+      - grafana.tronic.sk
+prometheus:
+  ingress:
+    hosts:
+      - prometheus.tronic.sk

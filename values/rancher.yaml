@@ -1,0 +1,17 @@
+# # 1) Make sure the cattle-system namespace exists
+# kubectl create namespace cattle-system
+
+# # 2) Create a bootstrap-secret with your chosen password
+# kubectl -n cattle-system create secret generic bootstrap-secret --from-literal=bootstrapPassword='YourAdminPassword123'
+
+replicas: 1
+tls: external
+ingress:
+  enabled: true
+  servicePort: 80
+  tls:
+    source: ""
+hostname: rancher.tronic.sk
+fleet:
+  enabled: false
+

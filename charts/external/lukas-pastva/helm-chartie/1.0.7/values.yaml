@@ -23,7 +23,7 @@ deployments: {}
 #    podSecurityContext:
 #      securityContext: {}
 #    labels:
-#      checksum: {{ include (print $.Template.BasePath "/cm-application.yaml") . | sha256sum }}
+#      checksum: {{ include (print $.Template.BasePath "/cm-application.yml") . | sha256sum }}
 #    annotations:
 #      vault.hashicorp.com/agent-inject: "true"
 #      vault.hashicorp.com/role: "myapp-role"

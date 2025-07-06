@@ -129,3 +129,58 @@ appProjects:
         path: external/ingress-nginx/ingress-nginx/4.12.3
         autoSync: true
         valueFiles: true
+  - namespace: web-argo-helm-toggler
+    applications:
+      - name: web-argo-helm-toggler
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        path: external/lukas-pastva/helm-chartie/1.0.7
+        autoSync: true
+        valueFiles: true
+      - name: web-argo-helm-toggler-admin
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        path: external/utkuozdemir/filebrowser/1.0.0
+        autoSync: true
+        valueFiles: true
+  - namespace: monitoring
+    applications:
+      - name: kube-prometheus-stack-crds
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        path: external/prometheus-community/kube-prometheus-stack/75.9.0/charts/crds/crds
+        autoSync: true
+        replace: true
+        syncWave: "-1"
+      - name: kube-prometheus-stack
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        path: external/prometheus-community/kube-prometheus-stack/75.9.0
+        autoSync: true
+        valueFiles: true
+        skipCrds: true
+      - name: loki
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        path: external/grafana/loki/6.30.1
+        autoSync: false
+        valueFiles: true
+      - name: tempo
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        path: external/grafana/tempo/1.23.2
+        autoSync: trfalseue
+        valueFiles: true
+  - namespace: rancher
+    applications:
+      - name: rancher
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        path: external/rancher-stable/rancher/2.11.3
+        autoSync: false
+        valueFiles: true
+
+  - namespace: metallb-system
+    applications:
+      - name: sys-metallb
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+        path: external/metallb/metallb/0.15.2
+        autoSync: false
+        valueFiles: true
+      - name: sys-metallb-iap
+        path: external/lukas-pastva/helm-chartie/1.0.7
+        autoSync: false
+        valueFiles: true

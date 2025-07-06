@@ -1,0 +1,4 @@
+ingress:
+  enabled: true
+  hosts:
+    - loki.tronic.sk

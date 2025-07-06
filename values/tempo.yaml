@@ -1,0 +1,5 @@
+tempoQuery:
+  ingress:
+    enabled: true
+    hosts:
+      - tempo.tronic.sk
