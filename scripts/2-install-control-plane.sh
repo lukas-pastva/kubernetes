@@ -2,39 +2,74 @@
 set -euo pipefail
 
 ###############################################################################
-# Preconditions
+# 2-install-control-plane.sh
+# ────────────────────────────────────────────────────────────────────────────
+# Installs an RKE2 control-plane node, Argo CD, bootstraps your Git repo,
+# and (optionally) seeds Rancher on the same cluster.
+#
+# Environment variables you can pre-seed:
+#   RANCHER_TOKEN       –  RKE2 cluster-join token
+#   GIT_REPO_URL        –  SSH URL of your Git repo (e.g. git@host:org/repo.git)
+#   SSH_PRIVATE_KEY     –  private key that grants read-write access to repo
+#   ARGOCD_PASS         –  desired Argo CD *admin* password (plain text)
+#   RANCHER_PASS        –  desired Rancher admin password
+#   INSTALL_RANCHER     –  "true" → also install Rancher & bootstrap password
 ###############################################################################
-(( EUID == 0 )) || { echo "ERROR: run as root." >&2; exit 1; }
 
 ###############################################################################
-# Variables
+# Auto-escalate – relaunch under sudo if not root
+###############################################################################
+if (( EUID != 0 )); then
+  echo "⎈  Not running as root – re-launching with sudo…"
+  exec sudo -E bash "$0" "$@"
+fi
+
+###############################################################################
+# Variables & interactive fall-backs
 ###############################################################################
 KUBE_USER="${SUDO_USER:-root}"
 USER_HOME="$(getent passwd "$KUBE_USER" | cut -d: -f6)"
 KUBE_DIR="$USER_HOME/.kube"
 ADMIN_KUBECONFIG="/etc/rancher/rke2/rke2.yaml"
 
-# RKE2 cluster-join token
 TOKEN="${RANCHER_TOKEN:-}"
-
-# NEW – Git repo URL + private key for Argo CD
 GIT_REPO_URL="${GIT_REPO_URL:-}"
 SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY:-}"
-
-# Optional admin passwords (may also be passed as env-vars / one-liner)
 ARGOCD_PASS="${ARGOCD_PASS:-}"
 RANCHER_PASS="${RANCHER_PASS:-}"
 
-# Ask interactively if anything is still missing
-if [[ -z "$TOKEN" ]];        then read -s -p "Enter RKE2 join token: " TOKEN && echo; fi
-if [[ -z "$GIT_REPO_URL" ]]; then read    -p "Enter Git repo SSH URL   : " GIT_REPO_URL;      fi
+[[ -z "$TOKEN"        ]] && read -s -p "Enter RKE2 join token                : " TOKEN && echo
+[[ -z "$GIT_REPO_URL" ]] && read    -p "Enter Git repo SSH URL             : " GIT_REPO_URL
 if [[ -z "$SSH_PRIVATE_KEY" ]]; then
   echo "Paste SSH private key, end with EOF (Ctrl-D):"
-  SSH_PRIVATE_KEY=$(cat)
+  SSH_PRIVATE_KEY="$(cat)"
 fi
-if [[ -z "$ARGOCD_PASS" ]]; then
-  read -s -p "Enter desired Argo CD admin password: " ARGOCD_PASS && echo
+[[ -z "$ARGOCD_PASS"  ]] && read -s -p "Enter desired Argo CD admin password: " ARGOCD_PASS && echo
+
+###############################################################################
+# Ensure *htpasswd* is available (apache2-utils or httpd-tools)
+###############################################################################
+if ! command -v htpasswd >/dev/null; then
+  echo "Installing *htpasswd* utility…"
+  if   command -v apt-get >/dev/null; then
+       apt-get update -qq
+       DEBIAN_FRONTEND=noninteractive apt-get install -y -qq apache2-utils
+  elif command -v dnf     >/dev/null; then dnf install  -y -q httpd-tools
+  elif command -v yum     >/dev/null; then yum install  -y -q httpd-tools
+  else
+    echo "ERROR: cannot install 'htpasswd' automatically." >&2
+    exit 1
+  fi
 fi
+
+###############################################################################
+# Hash the Argo CD password (bcrypt, $2a$…) – required by the Helm chart
+###############################################################################
+ARGOCD_HASH="$(
+  htpasswd -nbBC 10 "" "$ARGOCD_PASS" \
+    | tr -d ':\n' \
+    | sed 's/\$2y/\$2a/'
+)"
 
 ###############################################################################
 # RKE2 control-plane install
@@ -55,7 +90,7 @@ systemctl enable rke2-server.service
 systemctl start  rke2-server.service
 
 ###############################################################################
-# Tooling – kubectl · k9s · Helm
+# Tooling – kubectl · k9s · Helm  (latest stable versions)
 ###############################################################################
 K8S_VERSION="$(curl -sL https://dl.k8s.io/release/stable.txt)"
 curl -sL "https://dl.k8s.io/release/${K8S_VERSION}/bin/linux/amd64/kubectl" \
@@ -80,7 +115,7 @@ echo "Waiting for Kubernetes API to become available…"
 until kubectl version >/dev/null 2>&1; do sleep 5; done
 
 ###############################################################################
-# Argo CD installation
+# Argo CD installation (with *hashed* admin password)
 ###############################################################################
 ARGOCD_PASS="${ARGOCD_PASS:-}"
 if [[ -z "$ARGOCD_PASS" ]]; then
@@ -92,16 +127,16 @@ helm repo update
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd --create-namespace --version 8.1.2 \
   --set configs.secret.createSecret=true \
-  --set-string configs.secret.argocdServerAdminPassword="$ARGOCD_PASS"
+  --set-string configs.secret.argocdServerAdminPassword="$ARGOCD_HASH"
 
-echo -e "\n✔ Argo CD installed – user *admin*, password '${ARGOCD_PASS}'"
+echo -e "\n✔ Argo CD installed – user: *admin*, password: '${ARGOCD_PASS}'"
 
 ###############################################################################
-# NEW – Git SSH secret for Argo CD
+# Git repo SSH secret for Argo CD
 ###############################################################################
 echo "Creating Git SSH secret in argocd…"
 
-# turn literal '\n' back into real line-breaks
+# Turn literal '\n' back into real line-breaks
 printf -v KEY_STR '%b\n' "${SSH_PRIVATE_KEY//\\n/$'\n'}"
 
 cat <<EOF | kubectl apply -f -
@@ -121,7 +156,7 @@ $(echo "$KEY_STR" | sed 's/^/    /')
 EOF
 
 ###############################################################################
-# NEW – default AppProject + “app-of-apps” Application
+# Default AppProject + "app-of-apps" Application bootstrap
 ###############################################################################
 echo "Bootstrapping app-of-apps…"
 
@@ -132,10 +167,10 @@ metadata:
   name: default
   namespace: argocd
 spec:
+  description: default project
   clusterResourceWhitelist:
   - group: '*'
     kind: '*'
-  description: default project
   destinations:
   - namespace: '*'
     server: '*'
@@ -159,12 +194,12 @@ spec:
       valueFiles:
       - ../../../app-of-apps.yaml
   destination:
-    namespace: argocd
     name: in-cluster
+    namespace: argocd
 EOF
 
 ###############################################################################
-# Optional – Rancher bootstrap (only if INSTALL_RANCHER=true)
+# Optional – Rancher bootstrap
 ###############################################################################
 if [[ "${INSTALL_RANCHER:-false}" == "true" ]]; then
   if [[ -z "$RANCHER_PASS" ]]; then
@@ -179,19 +214,31 @@ if [[ "${INSTALL_RANCHER:-false}" == "true" ]]; then
 fi
 
 ###############################################################################
-# HISTORY WIPE (root + invoking user)
+# HISTORY WIPE  (invoking user and root)
 ###############################################################################
 echo "Wiping shell history…"
-unset HISTFILE
-history -c 2>/dev/null || true
-for h in /root/.bash_history "/home/${KUBE_USER}"/.bash_history; do
-  [ -f "$h" ] && rm -f "$h"
-done
+{
+  unset HISTFILE
+  history -c 2>/dev/null || true
+
+  wipe() {                   # truncate & divert future writes
+    local f="$1"; [ -e "$f" ] || return
+    : > "$f" || true
+    ln -sf /dev/null "$f" 2>/dev/null || true
+  }
+
+  wipe "$HOME/.bash_history"                 # current (root) shell
+  if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ]; then
+    u_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+    wipe "${u_home}/.bash_history"
+  fi
+} 2>/dev/null || true
 
 ###############################################################################
-# Self-destruct: delete this script
+# Self-destruct
 ###############################################################################
 rm -- "$0" 2>/dev/null || true
 
 echo
-echo "✔ Installation finished. kubeconfig: $KUBE_DIR/config"
+echo "🎉  Installation finished."
+echo "    kubeconfig for ${KUBE_USER}: $KUBE_DIR/config"
