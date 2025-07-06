@@ -18,9 +18,9 @@ deployments:
           - "deploy.tronic.sk"
         paths:
           - "/"
-        annotations:
-          nginx.ingress.kubernetes.io/auth-signin: https://oauth2-google.tronic.sk/oauth2/start?rd=$scheme://$http_host$request_uri
-          nginx.ingress.kubernetes.io/auth-url: https://oauth2-google.tronic.sk/oauth2/auth
+        # annotations:
+        #   nginx.ingress.kubernetes.io/auth-signin: https://oauth2-google.tronic.sk/oauth2/start?rd=$scheme://$http_host$request_uri
+        #   nginx.ingress.kubernetes.io/auth-url: https://oauth2-google.tronic.sk/oauth2/auth
     env:
       - name: VITE_HEADER_BG
         value: "#0f2733s"
