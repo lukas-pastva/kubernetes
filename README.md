@@ -91,7 +91,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: git@github.com:lukas-pastva/kubernetes.git
+    repoURL: git@gitlab.com:tronic-sk/helm-charts.git
     path: charts/internal/app-of-apps
     targetRevision: main
     helm:
