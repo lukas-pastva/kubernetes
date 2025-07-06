@@ -6,9 +6,9 @@ appProjects:
         path: external/oauth2-proxy/oauth2-proxy/7.9.0
         autoSync: true
         valueFiles: true
-  - namespace: argo-cd
+  - namespace: argocd
     applications:
-      - name: argo-cd
+      - name: argocd
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/argo/argo-cd/8.1.2
         autoSync: false
