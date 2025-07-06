@@ -8,7 +8,7 @@ appProjects:
         valueFiles: true
   - namespace: argo-cd
     applications:
-      - name: argo-events
+      - name: argo-cd
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/argo/argo-cd/8.1.2
         autoSync: false
