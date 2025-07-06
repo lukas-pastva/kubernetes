@@ -196,6 +196,10 @@ spec:
   destination:
     name: in-cluster
     namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
 EOF
 
 ###############################################################################
