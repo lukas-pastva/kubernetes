@@ -181,6 +181,7 @@ appProjects:
         autoSync: false
         valueFiles: true
       - name: sys-metallb-iap
+        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/lukas-pastva/helm-chartie/1.0.7
         autoSync: false
         valueFiles: true
