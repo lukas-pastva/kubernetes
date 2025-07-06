@@ -28,52 +28,52 @@ appProjects:
       - name: argo-workflows-ui
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/lukas-pastva/helm-chartie/1.0.7
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-backup-gl
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-backup-gh
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-backup-k8s
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-stop
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-deploy
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-install
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-upgrade
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-download
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: event-delete
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: internal/events
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: argo-helm-toggler
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
@@ -98,14 +98,14 @@ appProjects:
       - name: web-example
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/lukas-pastva/helm-chartie/1.0.7
-        autoSync: false
+        autoSync: true
         valueFiles: true
   - namespace: ingress-browser
     applications:
       - name: ingress-browser
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/lukas-pastva/helm-chartie/1.0.7
-        autoSync: false
+        autoSync: true
         valueFiles: true
   - namespace: cert-manager
     applications:
@@ -126,7 +126,7 @@ appProjects:
       - name: csi-s3
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/k8s-csi-s3/csi-s3/0.43.0
-        autoSync: false
+        autoSync: true
         valueFiles: true
   - namespace: ingress-nginx
     applications:
@@ -164,7 +164,7 @@ appProjects:
       - name: loki
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/grafana/loki/6.30.1
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: tempo
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
@@ -176,7 +176,7 @@ appProjects:
       - name: rancher
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/rancher-stable/rancher/2.11.3
-        autoSync: false
+        autoSync: true
         valueFiles: true
 
   - namespace: metallb-system
@@ -184,10 +184,10 @@ appProjects:
       - name: sys-metallb
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/metallb/metallb/0.15.2
-        autoSync: false
+        autoSync: true
         valueFiles: true
       - name: sys-metallb-iap
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/lukas-pastva/helm-chartie/1.0.7
-        autoSync: false
+        autoSync: true
         valueFiles: true
