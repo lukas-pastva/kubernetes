@@ -12,6 +12,8 @@ spec:
     chart: argo-cd
     helm:
       valuesObject:
+        global:
+          domain: argocd.tronic.sk
         controller:
           resources:
             limits:
