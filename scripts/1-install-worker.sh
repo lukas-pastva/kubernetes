@@ -4,8 +4,16 @@ set -euo pipefail
 ###############################################################################
 # RKE2 worker install
 ###############################################################################
-read -s -p "Enter RKE2 join token: " TOKEN && echo
-read    -p "Enter control-plane (or load-balancer) IP/hostname: " SERVER_ADDR
+# You can pre-seed the join token via $RANCHER_TOKEN.
+# If it isn’t set, the script will prompt for it.
+###############################################################################
+TOKEN="${RANCHER_TOKEN:-}"
+
+if [[ -z "$TOKEN" ]]; then
+  read -s -p "Enter RKE2 join token: " TOKEN && echo
+fi
+
+read -p "Enter control-plane (or load-balancer) IP/hostname: " SERVER_ADDR
 
 if (( EUID != 0 )); then
   echo "This script must be run as root." >&2
