@@ -1,13 +1,14 @@
 ingress:
   enabled: true
   hosts:
-    - oauth2-proxy.tronic.sk
+    - oauth2-google.tronic.sk
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   tls:
-    - secretName: cert-oauth2-proxy-pastvova-sk
+    - secretName: cert-oauth2-google
       hosts:
-        - oauth2-proxy.tronic.sk
+        - oauth2-google.tronic.sk
+  className: "nginx"
 resources:
   limits:
     memory: 100Mi
@@ -15,7 +16,7 @@ resources:
     cpu: 50m
     memory: 60Mi
 config:
-  existingSecret: "oauth2-proxy-pastvova"
+  existingSecret: "oauth2-google"
   configFile: |-
     upstreams = [ "file:///dev/null" ]
     cookie_domains = ".tronic.sk"
@@ -31,4 +32,4 @@ config:
     cookie_expire = "168h"
 serviceAccount:
   enabled: true
-  name: oauth2-proxy-pastvova
+  name: oauth2-google

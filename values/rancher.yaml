@@ -11,6 +11,7 @@ ingress:
   servicePort: 80
   tls:
     source: ""
+  ingressClassName: "nginx"
 hostname: rancher.tronic.sk
 fleet:
   enabled: false

@@ -3,3 +3,4 @@ tempoQuery:
     enabled: true
     hosts:
       - tempo.tronic.sk
+    ingressClassName: "nginx" 
