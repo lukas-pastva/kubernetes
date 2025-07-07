@@ -27,7 +27,7 @@ appProjects:
         valueFiles: true
       - name: argo-workflows-ui
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.7
+        path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
       - name: event-backup-gl
@@ -77,12 +77,12 @@ appProjects:
         valueFiles: true
       - name: argo-helm-toggler
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.7
+        path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
       - name: argo-app-forge
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.7
+        path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
   - namespace: secrets
@@ -97,14 +97,14 @@ appProjects:
     applications:
       - name: web-example
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.7
+        path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
   - namespace: ingress-browser
     applications:
       - name: ingress-browser
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.7
+        path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
   - namespace: cert-manager
@@ -140,7 +140,7 @@ appProjects:
     applications:
       - name: web-argo-helm-toggler
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.7
+        path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
       - name: web-argo-helm-toggler-admin
@@ -170,7 +170,7 @@ appProjects:
       - name: tempo
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/grafana/tempo/1.23.2
-        autoSync: trfalseue
+        autoSync: true
         valueFiles: true
   - namespace: rancher
     applications:
@@ -190,7 +190,7 @@ appProjects:
         syncWave: "-3"
       - name: metallb-iap
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.7
+        path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
         syncWave: "-2"

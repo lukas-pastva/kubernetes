@@ -19,6 +19,7 @@ metadata:
       {{- end }}
       {{- if $itemPorts.annotations }}{{- $itemPorts.annotations | toYaml | nindent 4 }}{{- end }}
 spec:
+  ingressClassName: {{ default "nginx" $itemPorts.ingressClassName }}
       {{- if $itemPorts.tls }}
   tls:
 {{ $itemPorts.tls | toYaml | indent 4 }}
