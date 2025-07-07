@@ -1,7 +1,7 @@
 deployments:
 
   argo-app-forge:
-    image: lukaspastva/argo-app-forge:49024beaa81bc85197622a3ce530b35469e3183a
+    image: lukaspastva/argo-app-forge:20b00a6de3ce8a0fe824f860c685b71c653290bd
     resources:
       limits:
         memory: 400Mi
