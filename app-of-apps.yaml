@@ -182,13 +182,13 @@ appProjects:
 
   - namespace: metallb-system
     applications:
-      - name: sys-metallb
+      - name: metallb
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/metallb/metallb/0.15.2
         autoSync: true
         valueFiles: true
         syncWave: "-3"
-      - name: sys-metallb-iap
+      - name: metallb-iap
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/lukas-pastva/helm-chartie/1.0.7
         autoSync: true
