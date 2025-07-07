@@ -12,7 +12,7 @@ set -euo pipefail
 # • For every application listed in $OAUTH2_APPS it
 #     – creates a namespace with the same name
 #     – creates / updates a secret <app> holding:
-#         clientId, clientSecret, cookieSecret, redisPassword
+#         client-id, client-secret, cookie-secret, redis-password
 #
 # Environment variables you can pre-seed (same as before + OAuth2):
 #   RANCHER_TOKEN       – RKE2 cluster-join token
@@ -134,26 +134,11 @@ echo "Waiting for Kubernetes API to become available…"
 until kubectl version >/dev/null 2>&1; do sleep 5; done
 
 ###############################################################################
-# Argo CD installation (with *hashed* admin password)
-###############################################################################
-ARGOCD_PASS="${ARGOCD_PASS:-}"
-if [[ -z "$ARGOCD_PASS" ]]; then
-  read -s -p "Enter desired Argo CD admin password: " ARGOCD_PASS && echo
-fi
-
-helm repo add argo https://argoproj.github.io/argo-helm
-helm repo update
-helm upgrade --install argocd argo/argo-cd \
-  --namespace argocd --create-namespace --version 8.1.2 \
-  --set configs.secret.createSecret=true \
-  --set-string configs.secret.argocdServerAdminPassword="$ARGOCD_HASH"
-
-echo -e "\n✔ Argo CD installed – user: *admin*, password: '${ARGOCD_PASS}'"
-
-###############################################################################
-# Git repo SSH secret for Argo CD
+# Git repo SSH secret for Argo CD        ← moved up (needs argocd ns)
 ###############################################################################
 echo "Creating Git SSH secret in argocd…"
+
+kubectl get ns argocd >/dev/null 2>&1 || kubectl create ns argocd
 
 # Turn literal '\n' back into real line-breaks
 printf -v KEY_STR '%b\n' "${SSH_PRIVATE_KEY//\\n/$'\n'}"
@@ -173,6 +158,23 @@ $(echo "$KEY_STR" | sed 's/^/    /')
   type: git
   url: $GIT_REPO_URL
 EOF
+
+###############################################################################
+# Argo CD installation (with *hashed* admin password)
+###############################################################################
+ARGOCD_PASS="${ARGOCD_PASS:-}"
+if [[ -z "$ARGOCD_PASS" ]]; then
+  read -s -p "Enter desired Argo CD admin password: " ARGOCD_PASS && echo
+fi
+
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+helm upgrade --install argocd argo/argo-cd \
+  --namespace argocd --create-namespace --version 8.1.2 \
+  --set configs.secret.createSecret=true \
+  --set-string configs.secret.argocdServerAdminPassword="$ARGOCD_HASH"
+
+echo -e "\n✔ Argo CD installed – user: *admin*, password: '${ARGOCD_PASS}'"
 
 ###############################################################################
 # Default AppProject + "app-of-apps" Application bootstrap
@@ -272,10 +274,10 @@ if [[ -n "${OAUTH2_APPS:-}" ]]; then
 
     # 2) generic secret (idempotent apply)
     kubectl -n "$NS" create secret generic "${NS}" \
-      --from-literal=clientId="$CLIENT_ID" \
-      --from-literal=clientSecret="$CLIENT_SECRET" \
-      --from-literal=cookieSecret="$COOKIE_SECRET" \
-      --from-literal=redisPassword="$REDIS_PASSWORD" \
+      --from-literal=client-id="$CLIENT_ID" \
+      --from-literal=client-secret="$CLIENT_SECRET" \
+      --from-literal=cookie-secret="$COOKIE_SECRET" \
+      --from-literal=redis-password="$REDIS_PASSWORD" \
       --dry-run=client -o yaml | kubectl apply -f -
 
     echo "✔ OAuth2 secret for ${APP} applied."
