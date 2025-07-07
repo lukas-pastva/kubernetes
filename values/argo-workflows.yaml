@@ -13,9 +13,11 @@ server:
     ingressClassName: "nginx"
     hosts:
       - workflows.tronic.sk
+    # oauth2-google BEGIN
     # annotations:
     #   nginx.ingress.kubernetes.io/auth-signin: https://oauth2-google.tronic.sk/oauth2/start?rd=$scheme://$http_host$request_uri
     #   nginx.ingress.kubernetes.io/auth-url: https://oauth2-google.tronic.sk/oauth2/auth
+    # oauth2-google END
   authModes: ["server"]
 
 extraObjects:

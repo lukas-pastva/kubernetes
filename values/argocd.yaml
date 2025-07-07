@@ -25,9 +25,11 @@ server:
     enabled: true
     hostname: argocd.tronic.sk
     https: false
+    # oauth2-google BEGIN
     # annotations:
     #   nginx.ingress.kubernetes.io/auth-signin: https://oauth2-google.tronic.sk/oauth2/start?rd=$scheme://$http_host$request_uri
     #   nginx.ingress.kubernetes.io/auth-url: https://oauth2-google.tronic.sk/oauth2/auth
+    # oauth2-google END
   resources:
     limits:
       memory: 200Mi
