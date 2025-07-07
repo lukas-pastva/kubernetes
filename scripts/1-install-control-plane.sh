@@ -2,18 +2,34 @@
 set -euo pipefail
 
 ###############################################################################
-# 2-install-control-plane.sh
+# 1-install-control-plane.sh
 # ────────────────────────────────────────────────────────────────────────────
 # Installs an RKE2 control-plane node, Argo CD, bootstraps your Git repo,
 # and (optionally) seeds Rancher on the same cluster.
 #
-# Environment variables you can pre-seed:
-#   RANCHER_TOKEN       –  RKE2 cluster-join token
-#   GIT_REPO_URL        –  SSH URL of your Git repo (e.g. git@host:org/repo.git)
-#   SSH_PRIVATE_KEY     –  private key that grants read-write access to repo
-#   ARGOCD_PASS         –  desired Argo CD *admin* password (plain text)
-#   RANCHER_PASS        –  desired Rancher admin password
-#   INSTALL_RANCHER     –  "true" → also install Rancher & bootstrap password
+# New in this version
+# ───────────────────
+# • For every application listed in $OAUTH2_APPS it
+#     – creates a namespace with the same name
+#     – creates / updates a secret <app> holding:
+#         clientId, clientSecret, cookieSecret, redisPassword
+#
+# Environment variables you can pre-seed (same as before + OAuth2):
+#   RANCHER_TOKEN       – RKE2 cluster-join token
+#   GIT_REPO_URL        – SSH URL of your Git repo (e.g. git@host:org/repo.git)
+#   SSH_PRIVATE_KEY     – private key that grants read-write access to repo
+#   ARGOCD_PASS         – desired Argo CD *admin* password (plain text)
+#   RANCHER_PASS        – desired Rancher admin password
+#   INSTALL_RANCHER     – "true" → also install Rancher & bootstrap password
+#
+# OAuth2 secrets
+# ──────────────
+#   OAUTH2_APPS                   – space / comma separated list of app names
+#   For every <APP> in that list (upper-cased, dashes→underscores) set:
+#     OAUTH2_<APP>_CLIENT_ID
+#     OAUTH2_<APP>_CLIENT_SECRET
+#     OAUTH2_<APP>_COOKIE_SECRET
+#     OAUTH2_<APP>_REDIS_PASSWORD
 ###############################################################################
 
 ###############################################################################
@@ -38,13 +54,13 @@ SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY:-}"
 ARGOCD_PASS="${ARGOCD_PASS:-}"
 RANCHER_PASS="${RANCHER_PASS:-}"
 
-[[ -z "$TOKEN"        ]] && read -s -p "Enter RKE2 join token                : " TOKEN && echo
-[[ -z "$GIT_REPO_URL" ]] && read    -p "Enter Git repo SSH URL             : " GIT_REPO_URL
+[[ -z "$TOKEN"        ]] && read -s -p "Enter RKE2 join token                 : " TOKEN && echo
+[[ -z "$GIT_REPO_URL" ]] && read    -p "Enter Git repo SSH URL              : " GIT_REPO_URL
 if [[ -z "$SSH_PRIVATE_KEY" ]]; then
   echo "Paste SSH private key, end with EOF (Ctrl-D):"
   SSH_PRIVATE_KEY="$(cat)"
 fi
-[[ -z "$ARGOCD_PASS"  ]] && read -s -p "Enter desired Argo CD admin password: " ARGOCD_PASS && echo
+[[ -z "$ARGOCD_PASS"  ]] && read -s -p "Enter desired Argo CD admin password : " ARGOCD_PASS && echo
 
 ###############################################################################
 # Ensure *htpasswd* is available (apache2-utils or httpd-tools)
@@ -77,6 +93,9 @@ ARGOCD_HASH="$(
 mkdir -p /etc/rancher/rke2/
 cat <<EOF >/etc/rancher/rke2/config.yaml
 token: ${TOKEN}
+
+node-taint:
+  - "CriticalAddonsOnly=true:NoExecute"
 cni:
   - cilium
 disable:
@@ -90,7 +109,7 @@ systemctl enable rke2-server.service
 systemctl start  rke2-server.service
 
 ###############################################################################
-# Tooling – kubectl · k9s · Helm  (latest stable versions)
+# Tooling – kubectl · k9s · Helm (latest stable versions)
 ###############################################################################
 K8S_VERSION="$(curl -sL https://dl.k8s.io/release/stable.txt)"
 curl -sL "https://dl.k8s.io/release/${K8S_VERSION}/bin/linux/amd64/kubectl" \
@@ -162,7 +181,7 @@ echo "Bootstrapping app-of-apps…"
 
 sleep 10
 
-# ⬇️  If the “default” AppProject already exists, do NOT recreate it
+# ⬇ If the “default” AppProject already exists, do NOT recreate it
 if ! kubectl get appproject default -n argocd >/dev/null 2>&1; then
 cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
@@ -225,6 +244,42 @@ if [[ "${INSTALL_RANCHER:-false}" == "true" ]]; then
     --from-literal=bootstrapPassword="$RANCHER_PASS" \
     --dry-run=client -o yaml | kubectl apply -f -
   echo "✔ Rancher bootstrap-secret created/updated."
+fi
+
+###############################################################################
+# OAuth2 apps – per-app namespace + secret
+###############################################################################
+if [[ -n "${OAUTH2_APPS:-}" ]]; then
+  # turn commas into spaces, squeeze duplicate spaces
+  for APP in $(echo "$OAUTH2_APPS" | tr ',' ' ' | xargs); do
+    NS="$APP"
+    # env-var prefix: uppercase, “-” → “_”
+    PREF=$(echo "$APP" | tr '[:lower:]-' '[:upper:]_')
+
+    # pull the 4 expected variables, default to empty string
+    eval CLIENT_ID="\${${PREF}_CLIENT_ID:-}"
+    eval CLIENT_SECRET="\${${PREF}_CLIENT_SECRET:-}"
+    eval COOKIE_SECRET="\${${PREF}_COOKIE_SECRET:-}"
+    eval REDIS_PASSWORD="\${${PREF}_REDIS_PASSWORD:-}"
+
+    if [[ -z "$CLIENT_ID" || -z "$CLIENT_SECRET" ]]; then
+      echo "⚠️  Skipping ${APP} – CLIENT_ID / CLIENT_SECRET not set."
+      continue
+    fi
+
+    # 1) namespace (idempotent)
+    kubectl get ns "$NS" >/dev/null 2>&1 || kubectl create ns "$NS"
+
+    # 2) generic secret (idempotent apply)
+    kubectl -n "$NS" create secret generic "${NS}" \
+      --from-literal=clientId="$CLIENT_ID" \
+      --from-literal=clientSecret="$CLIENT_SECRET" \
+      --from-literal=cookieSecret="$COOKIE_SECRET" \
+      --from-literal=redisPassword="$REDIS_PASSWORD" \
+      --dry-run=client -o yaml | kubectl apply -f -
+
+    echo "✔ OAuth2 secret for ${APP} applied."
+  done
 fi
 
 ###############################################################################
