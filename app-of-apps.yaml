@@ -11,7 +11,7 @@ appProjects:
       - name: argocd
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/argo/argo-cd/8.1.2
-        autoSync: false
+        autoSync: true
         valueFiles: true
   - namespace: argo-workflows
     applications:
