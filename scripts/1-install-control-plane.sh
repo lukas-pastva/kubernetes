@@ -4,28 +4,32 @@ set -euo pipefail
 ###############################################################################
 # 1-install-control-plane.sh
 # ────────────────────────────────────────────────────────────────────────────
-# Installs an RKE2 control-plane node, Argo CD, bootstraps your Git repo,
+# Installs an RKE2 control‑plane node, Argo CD, bootstraps your Git repo,
 # and (optionally) seeds Rancher on the same cluster.
 #
 # New in this version
 # ───────────────────
-# • For every application listed in $OAUTH2_APPS it
-#     – creates a namespace with the same name
-#     – creates / updates a secret <app> holding:
-#         client-id, client-secret, cookie-secret, redis-password
+# • OAuth2 secrets support (see ENV vars below).
+# • If the app list (SELECTED_APPS) contains **argo‑helm‑toggler**:
+#     – ensure namespace **argo‑workflows**
+#     – create/update secret **git-ssh-key** in that ns:
+#         key name  : GIT_REPO_SSH
+#         key value : the SSH *private* key used for the Git repo
 #
-# Environment variables you can pre-seed (same as before + OAuth2):
-#   RANCHER_TOKEN       – RKE2 cluster-join token
-#   GIT_REPO_URL        – SSH URL of your Git repo (e.g. git@host:org/repo.git)
-#   SSH_PRIVATE_KEY     – private key that grants read-write access to repo
-#   ARGOCD_PASS         – desired Argo CD *admin* password (plain text)
+# Environment variables you can pre‑seed
+# ───────────────────────────────────────
+#   RANCHER_TOKEN       – RKE2 cluster‑join token
+#   GIT_REPO_URL        – SSH URL of your Git repo (git@host:org/repo.git)
+#   SSH_PRIVATE_KEY     – private key that grants read‑write access to repo
+#   ARGOCD_PASS         – desired Argo CD *admin* password (plain text)
 #   RANCHER_PASS        – desired Rancher admin password
 #   INSTALL_RANCHER     – "true" → also install Rancher & bootstrap password
+#   SELECTED_APPS       – space‑separated list of app names chosen in Step 3
 #
 # OAuth2 secrets
 # ──────────────
-#   OAUTH2_APPS                   – space / comma separated list of app names
-#   For every <APP> in that list (upper-cased, dashes→underscores) set:
+#   OAUTH2_APPS  – space / comma separated list of OAuth2 app names
+#   For every <APP> in that list (upper‑cased, dashes→underscores) set:
 #     OAUTH2_<APP>_CLIENT_ID
 #     OAUTH2_<APP>_CLIENT_SECRET
 #     OAUTH2_<APP>_COOKIE_SECRET
@@ -33,15 +37,15 @@ set -euo pipefail
 ###############################################################################
 
 ###############################################################################
-# Auto-escalate – relaunch under sudo if not root
+# Auto‑escalate – relaunch under sudo if not root
 ###############################################################################
 if (( EUID != 0 )); then
-  echo "⎈  Not running as root – re-launching with sudo…"
+  echo "⎈  Not running as root – re‑launching with sudo…"
   exec sudo -E bash "$0" "$@"
 fi
 
 ###############################################################################
-# Variables & interactive fall-backs
+# Variables & interactive fall‑backs
 ###############################################################################
 KUBE_USER="${SUDO_USER:-root}"
 USER_HOME="$(getent passwd "$KUBE_USER" | cut -d: -f6)"
@@ -53,17 +57,18 @@ GIT_REPO_URL="${GIT_REPO_URL:-}"
 SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY:-}"
 ARGOCD_PASS="${ARGOCD_PASS:-}"
 RANCHER_PASS="${RANCHER_PASS:-}"
+SELECTED_APPS="${SELECTED_APPS:-}"      # ← list from Step 3 (space‑sep)
 
 [[ -z "$TOKEN"        ]] && read -s -p "Enter RKE2 join token                 : " TOKEN && echo
 [[ -z "$GIT_REPO_URL" ]] && read    -p "Enter Git repo SSH URL              : " GIT_REPO_URL
 if [[ -z "$SSH_PRIVATE_KEY" ]]; then
-  echo "Paste SSH private key, end with EOF (Ctrl-D):"
+  echo "Paste SSH private key, end with EOF (Ctrl‑D):"
   SSH_PRIVATE_KEY="$(cat)"
 fi
-[[ -z "$ARGOCD_PASS"  ]] && read -s -p "Enter desired Argo CD admin password : " ARGOCD_PASS && echo
+[[ -z "$ARGOCD_PASS"  ]] && read -s -p "Enter desired Argo CD admin password : " ARGOCD_PASS && echo
 
 ###############################################################################
-# Ensure *htpasswd* is available (apache2-utils or httpd-tools)
+# Ensure *htpasswd* is available (apache2‑utils or httpd‑tools)
 ###############################################################################
 if ! command -v htpasswd >/dev/null; then
   echo "Installing *htpasswd* utility…"
@@ -79,7 +84,7 @@ if ! command -v htpasswd >/dev/null; then
 fi
 
 ###############################################################################
-# Hash the Argo CD password (bcrypt, $2a$…) – required by the Helm chart
+# Hash the Argo CD password (bcrypt, $2a$…)
 ###############################################################################
 ARGOCD_HASH="$(
   htpasswd -nbBC 10 "" "$ARGOCD_PASS" \
@@ -88,7 +93,7 @@ ARGOCD_HASH="$(
 )"
 
 ###############################################################################
-# RKE2 control-plane install
+# RKE2 control‑plane install
 ###############################################################################
 mkdir -p /etc/rancher/rke2/
 cat <<EOF >/etc/rancher/rke2/config.yaml
@@ -109,7 +114,7 @@ systemctl enable rke2-server.service
 systemctl start  rke2-server.service
 
 ###############################################################################
-# Tooling – kubectl · k9s · Helm (latest stable versions)
+# Tooling – kubectl · k9s · Helm (latest stable)
 ###############################################################################
 K8S_VERSION="$(curl -sL https://dl.k8s.io/release/stable.txt)"
 curl -sL "https://dl.k8s.io/release/${K8S_VERSION}/bin/linux/amd64/kubectl" \
@@ -134,13 +139,13 @@ echo "Waiting for Kubernetes API to become available…"
 until kubectl version >/dev/null 2>&1; do sleep 5; done
 
 ###############################################################################
-# Git repo SSH secret for Argo CD        ← moved up (needs argocd ns)
+# Git repo SSH secret for Argo CD
 ###############################################################################
 echo "Creating Git SSH secret in argocd…"
 
 kubectl get ns argocd >/dev/null 2>&1 || kubectl create ns argocd
 
-# Turn literal '\n' back into real line-breaks
+# Turn literal '\n' back into real line breaks
 printf -v KEY_STR '%b\n' "${SSH_PRIVATE_KEY//\\n/$'\n'}"
 
 cat <<EOF | kubectl apply -f -
@@ -160,7 +165,7 @@ $(echo "$KEY_STR" | sed 's/^/    /')
 EOF
 
 ###############################################################################
-# Argo CD installation (with *hashed* admin password)
+# Argo CD installation
 ###############################################################################
 ARGOCD_PASS="${ARGOCD_PASS:-}"
 if [[ -z "$ARGOCD_PASS" ]]; then
@@ -174,16 +179,16 @@ helm upgrade --install argocd argo/argo-cd \
   --set configs.secret.createSecret=true \
   --set-string configs.secret.argocdServerAdminPassword="$ARGOCD_HASH"
 
-echo -e "\n✔ Argo CD installed – user: *admin*, password: '${ARGOCD_PASS}'"
+echo -e "\n✔ Argo CD installed – user: *admin*, password: '${ARGOCD_PASS}'"
 
 ###############################################################################
-# Default AppProject + "app-of-apps" Application bootstrap
+# Default AppProject + “app‑of‑apps” Application bootstrap
 ###############################################################################
-echo "Bootstrapping app-of-apps…"
+echo "Bootstrapping app‑of‑apps…"
 
 sleep 10
 
-# ⬇ If the “default” AppProject already exists, do NOT recreate it
+# create AppProject only if it doesn't exist
 if ! kubectl get appproject default -n argocd >/dev/null 2>&1; then
 cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
@@ -208,7 +213,7 @@ else
   echo "✔ AppProject 'default' already present – skipping."
 fi
 
-# The Application can be safely (re-)applied every time
+# (re‑)apply the root Application
 cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -249,16 +254,38 @@ if [[ "${INSTALL_RANCHER:-false}" == "true" ]]; then
 fi
 
 ###############################################################################
-# OAuth2 apps – per-app namespace + secret
+# NEW – Prepare argo‑workflows if needed (helm‑toggler *or* app‑forge)
+###############################################################################
+if [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-helm-toggler[[:space:]]  ]] || \
+   [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-app-forge[[:space:]]     ]]; then
+  echo "↻  Setting up namespace 'argo-workflows' & git-ssh-key secret…"
+
+  kubectl get ns argo-workflows >/dev/null 2>&1 || \
+    kubectl create ns argo-workflows
+
+  cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: git-ssh-key
+  namespace: argo-workflows
+type: Opaque
+stringData:
+  GIT_REPO_SSH: |
+$(echo "$KEY_STR" | sed 's/^/    /')
+EOF
+
+  echo "✔  argo-workflows namespace & git-ssh-key secret ready."
+fi
+
+###############################################################################
+# OAuth2 apps – per‑app namespace + secret
 ###############################################################################
 if [[ -n "${OAUTH2_APPS:-}" ]]; then
-  # turn commas into spaces, squeeze duplicate spaces
   for APP in $(echo "$OAUTH2_APPS" | tr ',' ' ' | xargs); do
     NS="$APP"
-    # env-var prefix: uppercase, “-” → “_”
     PREF=$(echo "$APP" | tr '[:lower:]-' '[:upper:]_')
 
-    # pull the 4 expected variables, default to empty string
     eval CLIENT_ID="\${${PREF}_CLIENT_ID:-}"
     eval CLIENT_SECRET="\${${PREF}_CLIENT_SECRET:-}"
     eval COOKIE_SECRET="\${${PREF}_COOKIE_SECRET:-}"
@@ -269,10 +296,8 @@ if [[ -n "${OAUTH2_APPS:-}" ]]; then
       continue
     fi
 
-    # 1) namespace (idempotent)
     kubectl get ns "$NS" >/dev/null 2>&1 || kubectl create ns "$NS"
 
-    # 2) generic secret (idempotent apply)
     kubectl -n "$NS" create secret generic "${NS}" \
       --from-literal=client-id="$CLIENT_ID" \
       --from-literal=client-secret="$CLIENT_SECRET" \
@@ -291,5 +316,5 @@ echo
 echo "🎉  Installation finished."
 echo "    kubeconfig for ${KUBE_USER}: $KUBE_DIR/config"
 
-# ── self-destruct ────────────────────────────────────────────────────────────
+# self‑destruct
 rm -- "$0" 2>/dev/null || true

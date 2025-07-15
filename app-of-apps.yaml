@@ -136,18 +136,6 @@ appProjects:
         autoSync: true
         valueFiles: true
         syncWave: "-1"
-  - namespace: web-argo-helm-toggler
-    applications:
-      - name: web-argo-helm-toggler
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.8
-        autoSync: true
-        valueFiles: true
-      - name: web-argo-helm-toggler-admin
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/utkuozdemir/filebrowser/1.0.0
-        autoSync: true
-        valueFiles: true
   - namespace: monitoring
     applications:
       - name: kube-prometheus-stack-crds
