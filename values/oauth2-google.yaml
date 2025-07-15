@@ -20,7 +20,7 @@ config:
   configFile: |-
     upstreams = [ "file:///dev/null" ]
     cookie_domains = ".tronic.sk"
-    email_domains = [ "tronic.sk" ]
+    email_domains = [ "devopsgroup.sk" ]
     scope = "openid profile email"
     whitelist_domains = ".tronic.sk"
     pass_authorization_header = true
