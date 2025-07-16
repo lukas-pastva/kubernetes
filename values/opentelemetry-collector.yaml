@@ -1,0 +1,45 @@
+extraObjects:
+- apiVersion: opentelemetry.io/v1alpha1
+  kind: OpenTelemetryCollector
+  metadata:
+    name: opentelemetry
+    namespace: opentelemetry
+  spec:
+    mode: "sidecar"
+    config: |
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+            http:
+
+      processors:
+        batch: {}
+        memory_limiter:
+          check_interval: 5s
+          limit_mib: 409
+          spike_limit_mib: 128
+
+      exporters:
+        logging:
+          loglevel: info
+        otlp:
+          endpoint: http://monitoring-tempo-distributor.monitoring.svc.cluster.local:4317
+          tls:
+            insecure: true
+
+      service:
+        telemetry:
+          logs:
+            level: info
+            encoding: console
+        pipelines:
+          traces:
+            receivers:
+              - otlp
+            processors:
+              - memory_limiter
+              - batch
+            exporters:
+              - logging
+              - otlp

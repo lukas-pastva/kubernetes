@@ -34,8 +34,8 @@ deployments: {}
 #        port: 80
 #        portIngress: 8088 # some k8s not working when port 80, so this optional field can be used
 #        domains:
-#          - "conveior.tronic.sk"
-#          - "www.tronic.sk"
+#          - "conveior.openprime.sk"
+#          - "www.openprime.sk"
 #          - "www.lukaspastva.sk"
 #        paths:
 #          - "/"

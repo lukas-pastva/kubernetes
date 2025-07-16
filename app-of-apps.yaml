@@ -115,7 +115,7 @@ appProjects:
         path: external/ingress-nginx/ingress-nginx/4.12.3
         autoSync: true
         valueFiles: true
-        syncWave: "-1"
+        syncWave: '-1'
   - namespace: monitoring
     applications:
       - name: kube-prometheus-stack-crds
@@ -123,7 +123,7 @@ appProjects:
         path: external/prometheus-community/kube-prometheus-stack/75.9.0/charts/crds/crds
         autoSync: true
         replace: true
-        syncWave: "-1"
+        syncWave: '-1'
       - name: kube-prometheus-stack
         repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/prometheus-community/kube-prometheus-stack/75.9.0
@@ -154,10 +154,32 @@ appProjects:
         path: external/metallb/metallb/0.15.2
         autoSync: true
         valueFiles: true
-        syncWave: "-3"
+        syncWave: '-3'
       - name: metallb-iap
         repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
-        syncWave: "-2"
+        syncWave: '-2'
+  - namespace: opentelemetry
+    applications:
+      - name: opentelemetry-operator
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
+        path: external/opentelemetry-helm/opentelemetry-operator/0.91.1
+        autoSync: true
+        valueFiles: true
+        syncWave: '-2'
+      - name: opentelemetry-collector
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
+        path: external/lukas-pastva/helm-chartie/1.0.8
+        autoSync: true
+        valueFiles: true
+        syncWave: '-1'
+  - namespace: kube-system
+    applications:
+      - name: rke2-cilium
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
+        path: external/lukas-pastva/helm-chartie/1.0.8
+        autoSync: true
+        valueFiles: true
+        syncWave: '-2'

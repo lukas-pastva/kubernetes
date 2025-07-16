@@ -1,0 +1,7 @@
+admissionWebhooks:
+  create: true
+manager:
+  serviceMonitor:
+    enabled: true
+  env:
+    ENABLE_WEBHOOKS: "true"

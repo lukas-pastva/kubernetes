@@ -1,6 +1,182 @@
-tempoQuery:
+global:
+  dnsService: rke2-coredns-rke2-coredns
+tempo:
+  searchEnabled: true
+reportingEnabled: false
+serviceAccount:
+  create: true
+  name: null
+  imagePullSecrets: []
+  annotations: {}
+  automountServiceAccountToken: false        
+rbac:
+  create: false
+  pspEnabled: false
+memcached:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      memory: 100Mi
+gateway:
+  enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      memory: 100Mi
   ingress:
     enabled: true
     hosts:
       - tempo.tronic.sk
     ingressClassName: "nginx" 
+distributor:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      memory: 100Mi
+  replicas: 2
+queryFrontend:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      memory: 100Mi
+  extraArgs:
+    - '-config.expand-env=true'
+  extraEnv:
+    - name: S3_TEMPO_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoEndpoint
+    - name: S3_TEMPO_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoAccessKeyID
+    - name: S3_TEMPO_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoSecretAccessKey
+querier:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      memory: 100Mi
+  extraArgs:
+    - '-config.expand-env=true'
+  extraEnv:
+    - name: S3_TEMPO_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoEndpoint
+    - name: S3_TEMPO_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoAccessKeyID
+    - name: S3_TEMPO_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoSecretAccessKey
+compactor:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      memory: 100Mi
+  extraArgs:
+    - '-config.expand-env=true'
+  extraEnv:
+    - name: S3_TEMPO_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoEndpoint
+    - name: S3_TEMPO_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoAccessKeyID
+    - name: S3_TEMPO_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoSecretAccessKey
+ingester:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 20m
+      memory: 50Mi
+    limits:
+      memory: 100Mi
+  config:
+    replication_factor: 3
+  extraArgs:
+    - '-config.expand-env=true'
+  extraEnv:
+    - name: S3_TEMPO_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoEndpoint
+    - name: S3_TEMPO_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoAccessKeyID
+    - name: S3_TEMPO_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: vault-monitoring
+          key: TempoSecretAccessKey
+traces:
+  jaeger:
+    grpc:
+      enabled: true
+      receiverConfig: {}
+    thriftBinary:
+      enabled: true
+      receiverConfig: {}
+    thriftCompact:
+      enabled: true
+      receiverConfig: {}
+    thriftHttp:
+      enabled: true
+      receiverConfig: {}
+  otlp:
+    http:
+      enabled: true
+      receiverConfig: {}
+    grpc:
+      enabled: true
+      receiverConfig: {}
+metaMonitoring:
+  serviceMonitor:
+    enabled: true
+prometheusRule:
+  enabled: true
+server:
+  logLevel: debug
+storage:
+  trace:
+    backend: s3
+    s3:
+      bucket: customer-tronic-sk-tempo
+      region: auto
+      endpoint: ${S3_TEMPO_ENDPOINT}
+      access_key: "${S3_TEMPO_ACCESS_KEY_ID}"
+      secret_key: "${S3_TEMPO_SECRET_ACCESS_KEY}"

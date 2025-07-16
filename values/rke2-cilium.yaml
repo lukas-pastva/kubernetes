@@ -1,0 +1,56 @@
+extraObjects:
+- apiVersion: helm.cattle.io/v1
+  kind: HelmChartConfig
+  metadata:
+    name: rke2-cilium
+    namespace: kube-system
+  spec:
+    valuesContent: |-
+      operator:
+        replicas: 1
+        prometheus:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+            interval: 60s
+            labels:
+              release: kube-prometheus-stack
+      hubble:
+        enabled: true
+        relay:
+          enabled: true
+          prometheus:
+            enabled: true
+            serviceMonitor:
+              enabled: true
+              interval: 60s
+              labels:
+                release: kube-prometheus-stack
+        metrics:
+          serviceMonitor:
+            enabled: true
+            interval: 60s
+            labels:
+              release: kube-prometheus-stack
+          enableOpenMetrics: true
+          enabled:
+            - dns
+            - drop
+            - tcp
+            - icmp
+            - "flow:sourceContext=workload-name|reserved-identity;destinationContext=workload-name|reserved-identity"
+            - "kafka:labelsContext=source_namespace,source_workload,destination_namespace,destination_workload,traffic_direction;sourceContext=workload-name|reserved-identity;destinationContext=workload-name|reserved-identity"
+            - "httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction;sourceContext=workload-name|reserved-identity;destinationContext=workload-name|reserved-identity"
+          dashboards:
+            enabled: true
+            namespace: monitoring
+            annotations:
+              grafana_folder: "Hubble"
+      
+      prometheus:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+          interval: 60s
+          labels:
+            release: kube-prometheus-stack

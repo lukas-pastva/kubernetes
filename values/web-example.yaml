@@ -1,13 +1,48 @@
 deployments:
-  web-example:
-    image: lukaspastva/web-player:ab2dcde9dc3ec3969bfb82a3206350b2fb49f7cc
+
+  web-example-sql:
+    image: mariadb:11.3
     resources:
       limits:
-        memory: 120Mi
+        memory: 300Mi
+      requests:
+        cpu: 230m
+        memory: 250Mi
+    ports:
+      - name: http
+        port: 3306
+    extraServiceAccounts:
+      event-backup-k8s:
+        namespace: argo-workflows
+    roleRules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["list", "get"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["create", "get"]
+    env:
+    - name: MARIADB_DATABASE
+      value: "web-example"
+    - name: MARIADB_USER
+      value: "web-example"
+    - name: MARIADB_PASSWORD
+      value: "web-example-password"
+    - name: MARIADB_ROOT_PASSWORD
+      value: "web-example-root-password"
+
+  web-example:
+    image: lukaspastva/web-baby:3e348df6b851f8519f8d0f5e515f3ce4a1d63d83
+    annotations:
+      instrumentation.opentelemetry.io/inject-nodejs: "sam/opentelemetry"
+      # instrumentation.opentelemetry.io/inject-nginx: "true"
+      sidecar.opentelemetry.io/inject: opentelemetry/opentelemetry
+    resources:
+      limits:
+        memory: 200Mi
       requests:
         cpu: 100m
         memory: 100Mi
-    # podSecurityContextRestricted: true
     extraServiceAccounts:
       event-backup-k8s:
         namespace: argo-workflows
@@ -26,25 +61,17 @@ deployments:
           - "www.tronic.sk"
         paths:
           - "/"
-    volumeMountsFull:
-      - name: intro
-        mountPath: /etc/web-player/config
-        readOnly: true
-    volumesFull:
-      - name: intro
-        configMap:
-          name: intro
+    env:
+      - name: DB_NAME
+        value: "web-example"
+      - name: DB_USER
+        value: "web-example"
+      - name: DB_PASSWORD
+        value: "web-example-password"
+      - name: DB_HOST
+        value: web-example-sql.web-example.svc.cluster.local
 
 extraObjects:
-  - apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: intro
-    data:
-      intro.md: |
-        This is example web page
-        ---
- 
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
@@ -77,3 +104,34 @@ extraObjects:
       kind: Role
       name: argo-event-role
       apiGroup: rbac.authorization.k8s.io
+
+  # otel
+  - apiVersion: opentelemetry.io/v1alpha1
+    kind: Instrumentation
+    metadata:
+      name: opentelemetry
+      namespace: web-example
+    spec:
+      exporter:
+        endpoint: http://localhost:4317
+      propagators:
+        - tracecontext
+        - baggage
+        - b3
+      sampler:
+        type: parentbased_traceidratio
+        argument: "0.25"
+      python:
+        env:
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://localhost:4318
+      java:
+        env:
+          - name: OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
+            value: grpc
+          - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+            value: http://localhost:4317
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: http://localhost:4317
+          - name: OTEL_EXPORTER_OTLP_PROTOCOL
+            value: grpc
