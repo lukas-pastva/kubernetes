@@ -10,11 +10,18 @@ set -euo pipefail
 # New in this version
 # ───────────────────
 # • OAuth2 secrets support (see ENV vars below).
-# • If the app list (SELECTED_APPS) contains **argo‑helm‑toggler**:
-#     – ensure namespace **argo‑workflows**
-#     – create/update secret **git-ssh-key** in that ns:
-#         key name  : GIT_REPO_SSH
-#         key value : the SSH *private* key used for the Git repo
+# • If the app list (SELECTED_APPS) contains **argo‑helm‑toggler** *or*
+#   **argo‑app‑forge**, ensure namespace **argo‑workflows** and create/update
+#   secret **git-ssh-key** with the private Git key (back‑compat behaviour).
+# • If *any* selected app name starts with **event-** (e.g. event-processor),
+#   ensure namespace **argo‑workflows** and create/update secret **event**
+#   containing:
+#       ARGOCD_PASSWORD – the (plain‑text) Argo CD admin password
+#       ARGOCD_USERNAME – always "admin"
+#       GIT_SSH_KEY     – the SSH *private* key used for the Git repo
+#       GITOPS_REPO     – the GitOps repo URL from Step 3
+#       GIT_EMAIL       – always "user@argo-init.com"
+#       GIT_USER        – always "argo-init"
 #
 # Environment variables you can pre‑seed
 # ───────────────────────────────────────
@@ -254,12 +261,24 @@ if [[ "${INSTALL_RANCHER:-false}" == "true" ]]; then
 fi
 
 ###############################################################################
-# NEW – Prepare argo‑workflows if needed (helm‑toggler *or* app‑forge)
+# NEW – Prepare argo‑workflows if needed
+#      (helm‑toggler *or* app‑forge *or* any event-* app selected)
 ###############################################################################
-if [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-helm-toggler[[:space:]]  ]] || \
-   [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-app-forge[[:space:]]     ]]; then
-  echo "↻  Setting up namespace 'argo-workflows' & git-ssh-key secret…"
+# detect if any selected app starts with "event-"
+has_event_app=false
+if [[ -n "$SELECTED_APPS" ]]; then
+  for _app in $SELECTED_APPS; do
+    if [[ "$_app" == event-* ]]; then
+      has_event_app=true
+      break
+    fi
+  done
+fi
 
+if [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-helm-toggler[[:space:]]  ]] || \
+   [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-app-forge[[:space:]]     ]] || \
+   [[ "$has_event_app" == "true" ]]; then
+  echo "↻  Setting up namespace 'argo-workflows'…"
   kubectl get ns argo-workflows >/dev/null 2>&1 || \
     kubectl create ns argo-workflows
 
@@ -275,7 +294,28 @@ stringData:
 $(echo "$KEY_STR" | sed 's/^/    /')
 EOF
 
-  echo "✔  argo-workflows namespace & git-ssh-key secret ready."
+  # event secret only when an event-* app was selected
+  if [[ "$has_event_app" == "true" ]]; then
+    echo "↻  Creating/Updating 'event' secret in argo-workflows…"
+    cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: event
+  namespace: argo-workflows
+type: Opaque
+stringData:
+  ARGOCD_PASSWORD: "${ARGOCD_PASS}"
+  ARGOCD_USERNAME: "admin"
+  GIT_SSH_KEY: |
+$(echo "$KEY_STR" | sed 's/^/    /')
+  GITOPS_REPO: "${GIT_REPO_URL}"
+  GIT_EMAIL: "user@argo-init.com"
+  GIT_USER: "argo-init"
+EOF
+  fi
+
+  echo "✔  argo-workflows namespace & supporting secrets ready."
 fi
 
 ###############################################################################
