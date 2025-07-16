@@ -1,7 +1,7 @@
 deployments:
 
   argo-helm-toggler:
-    image: lukaspastva/argo-helm-toggler:741771de2d9d23af48379c5a2cdd68c071cf78e3
+    image: lukaspastva/argo-helm-toggler:516d8e190d060b1a36a76ed4078577f04641e8ee
     resources:
       limits:
         memory: 400Mi
