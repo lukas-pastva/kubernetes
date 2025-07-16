@@ -29,7 +29,7 @@ deployments:
       - name: GIT_SSH_KEY
         valueFrom:
           secretKeyRef:
-            name: git-ssh-read-helm-charts
+            name: git-ssh-key
             key: GIT_REPO_SSH
       - name: WF_WEBHOOK_URL
         value: "http://event-install-eventsource-svc.argo-workflows.svc.cluster.local:12000"

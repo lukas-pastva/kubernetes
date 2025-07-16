@@ -85,14 +85,6 @@ appProjects:
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
-  - namespace: secrets
-    doNotCreateNamespace: true
-    applications:
-      - name: secrets
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: internal/secrets
-        autoSync: true
-        valueFiles: true
   - namespace: web-example
     applications:
       - name: web-example
@@ -112,13 +104,6 @@ appProjects:
       - name: cert-manager
         repoURL: git@gitlab.com:tronic-sk/helm-charts.git
         path: external/cert-manager/cert-manager/1.18.2
-        autoSync: true
-        valueFiles: true
-  - namespace: onepassword-connect
-    applications:
-      - name: onepassword-connect
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/onepassword-connect/connect/1.17.1
         autoSync: true
         valueFiles: true
   - namespace: csi-s3
@@ -167,7 +152,6 @@ appProjects:
         path: external/rancher-stable/rancher/2.11.3
         autoSync: true
         valueFiles: true
-
   - namespace: metallb-system
     applications:
       - name: metallb

@@ -29,7 +29,7 @@ deployments:
       - name: GIT_SSH_KEY
         valueFrom:
           secretKeyRef:
-            name: git-ssh-read-helm-charts
+            name: git-ssh-key
             key: GIT_REPO_SSH
       - name: TOKEN_REPLACE
         value: "tronic.sk"
