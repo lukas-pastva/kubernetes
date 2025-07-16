@@ -1,12 +1,15 @@
 alertmanager:
   ingress:
+    enabled: true
     hosts:
       - alertmanager.tronic.sk
 grafana:
   ingress:
+    enabled: true
     hosts:
       - grafana.tronic.sk
 prometheus:
   ingress:
+    enabled: true
     hosts:
       - prometheus.tronic.sk
