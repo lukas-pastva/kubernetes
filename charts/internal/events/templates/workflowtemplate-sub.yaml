@@ -39,7 +39,7 @@ spec:
       volumes:
         - name: volume-secrets
           secret:
-            secretName: {{ .Values.secretName | default (printf "event-%s" .Values.name) }}
+            secretName: {{ $.Values.secretName | default (printf "event-%s" $.Values.name) }}
       {{- if .volumes }}{{- .volumes | toYaml | nindent 8 }}{{- end }}
       {{- if .securityContext }}
       securityContext:
