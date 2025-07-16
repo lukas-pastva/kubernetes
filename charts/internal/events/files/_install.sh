@@ -29,21 +29,11 @@ var_applicationCode="{{inputs.parameters.var_applicationCode}}"
 var_team="{{inputs.parameters.var_team}}"
 var_env="{{inputs.parameters.var_env}}"
 
-# helper – blank-out any value that was NOT substituted by Argo
-unset_if_unsubstituted() {
-  local v="$1"; [[ $v =~ \{\{.*\}\} ]] && echo "" || echo "$v"
-}
-var_name=$(unset_if_unsubstituted "$var_name")
-var_owner=$(unset_if_unsubstituted "$var_owner")
-var_applicationCode=$(unset_if_unsubstituted "$var_applicationCode")
-var_team=$(unset_if_unsubstituted "$var_team")
-var_env=$(unset_if_unsubstituted "$var_env")
-
 # decide which style we’re in ✨
-if [[ -n $var_applicationCode ]]; then
-  STYLE="trio"          # applicationCode / team / env
-else
+if [[ $var_applicationCode == "null" ]]; then
   STYLE="name"          # classic “name” style (default)
+else
+  STYLE="trio"          # applicationCode / team / env
 fi
 
 # sanity checks ---------------------------------------------------------------
