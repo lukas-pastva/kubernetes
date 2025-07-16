@@ -11,27 +11,28 @@ parameters:
   - name: release
     base64: false
   - name: owner
-    base64: false 
+    base64: false
+secretName: event
 workflowTemplates:
 - name: download
   env:
   - name: GIT_SSH_KEY
     valueFrom:
       secretKeyRef:
-        name: event-download
+        name: event
         key: GIT_SSH_KEY
   - name: GITOPS_REPO
     valueFrom:
       secretKeyRef:
-        name: event-download
+        name: event
         key: GITOPS_REPO
   - name: GIT_USER
     valueFrom:
       secretKeyRef:
-        name: event-download
+        name: event
         key: GIT_USER
   - name: GIT_EMAIL
     valueFrom:
       secretKeyRef:
-        name: event-download
+        name: event
         key: GIT_EMAIL

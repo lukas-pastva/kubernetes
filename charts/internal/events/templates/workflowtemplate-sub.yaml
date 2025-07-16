@@ -9,8 +9,6 @@ spec:
   serviceAccountName: event-{{ $.Values.name }}
   templates:
     - container:
-      {{- if eq .name "mail-send" }}{{ include "mail-send" $ | nindent 8 }}{{ end }}
-      {{- if eq .name "terraform" }}{{ include "terraform" $ | nindent 8 }}{{ end }}
       {{- if eq .name "backup-gl" }}{{ include "backup-gl" $ | nindent 8 }}{{ end }}
       {{- if eq .name "backup-gh" }}{{ include "backup-gh" $ | nindent 8 }}{{ end }}
       {{- if eq .name "backup-k8s" }}{{ include "backup-k8s" $ | nindent 8 }}{{ end }}
@@ -41,25 +39,13 @@ spec:
       volumes:
         - name: volume-secrets
           secret:
-            secretName: event-{{ $.Values.name }}
+            secretName: {{ .Values.secretName | default (printf "event-%s" .Values.name) }}
       {{- if .volumes }}{{- .volumes | toYaml | nindent 8 }}{{- end }}
       {{- if .securityContext }}
       securityContext:
         {{- .securityContext | toYaml | nindent 8 }}
       {{- end }}
 
-{{- end }}
-
-{{- define "mail-send" -}}
-args:
-- |
-{{ .Files.Get "files/_mail-send.sh" | indent 2 }}
-{{- end }}
-
-{{- define "terraform" -}}
-args:
-- |
-{{ .Files.Get "files/_terraform.sh" | indent 2 }}
 {{- end }}
 
 {{- define "backup-gl" -}}

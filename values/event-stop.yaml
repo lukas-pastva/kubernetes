@@ -4,16 +4,17 @@ description: "Event used to stop ArgoCD application (delete deployments)."
 parameters:
   - name: name
     base64: false
+secretName: event
 workflowTemplates:
 - name: stop
   env:
   - name: ARGOCD_USERNAME
     valueFrom:
       secretKeyRef:
-        name: event-stop
+        name: event
         key: ARGOCD_USERNAME
   - name: ARGOCD_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: event-stop
+        name: event
         key: ARGOCD_PASSWORD

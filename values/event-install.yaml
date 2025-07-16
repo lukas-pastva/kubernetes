@@ -18,26 +18,27 @@ parameters:
     base64: false
   - name: userValuesYaml
     base64: true
+secretName: event
 workflowTemplates:
 - name: install
   env:
   - name: GIT_SSH_KEY
     valueFrom:
       secretKeyRef:
-        name: event-install
+        name: event
         key: GIT_SSH_KEY
   - name: GITOPS_REPO
     valueFrom:
       secretKeyRef:
-        name: event-install
+        name: event
         key: GITOPS_REPO
   - name: GIT_USER
     valueFrom:
       secretKeyRef:
-        name: event-install
+        name: event
         key: GIT_USER
   - name: GIT_EMAIL
     valueFrom:
       secretKeyRef:
-        name: event-install
+        name: event
         key: GIT_EMAIL

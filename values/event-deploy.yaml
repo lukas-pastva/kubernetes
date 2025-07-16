@@ -6,36 +6,37 @@ parameters:
     base64: false
   - name: version
     base64: false
+secretName: event
 workflowTemplates:
 - name: deploy
   env:
   - name: ARGOCD_USERNAME
     valueFrom:
       secretKeyRef:
-        name: event-deploy
+        name: event
         key: ARGOCD_USERNAME
   - name: ARGOCD_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: event-deploy
+        name: event
         key: ARGOCD_PASSWORD
   - name: GIT_SSH_KEY
     valueFrom:
       secretKeyRef:
-        name: event-deploy
+        name: event
         key: GIT_SSH_KEY
   - name: GITOPS_REPO
     valueFrom:
       secretKeyRef:
-        name: event-deploy
+        name: event
         key: GITOPS_REPO
   - name: GIT_USER
     valueFrom:
       secretKeyRef:
-        name: event-deploy
+        name: event
         key: GIT_USER
   - name: GIT_EMAIL
     valueFrom:
       secretKeyRef:
-        name: event-deploy
+        name: event
         key: GIT_EMAIL
