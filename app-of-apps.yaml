@@ -80,11 +80,6 @@ appProjects:
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
         valueFiles: true
-      - name: argo-app-forge
-        repoURL: git@gitlab.com:tronic-sk/helm-charts.git
-        path: external/lukas-pastva/helm-chartie/1.0.8
-        autoSync: true
-        valueFiles: true
   - namespace: web-example
     applications:
       - name: web-example
