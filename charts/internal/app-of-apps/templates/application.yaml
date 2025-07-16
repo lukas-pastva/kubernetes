@@ -37,7 +37,7 @@ spec:
       - $values/values/{{ $application.name }}.yaml
       {{- end }}
   {{- if $application.valueFiles }}
-  - repoURL: git@gitlab.com:tronic-sk/helm-charts.git
+  - repoURL: git@github.com:lukas-pastva/kubernetes.git
     targetRevision: main
     ref: values
   {{ end }}
