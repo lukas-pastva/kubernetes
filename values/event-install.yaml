@@ -18,6 +18,12 @@ parameters:
     base64: false
   - name: userValuesYaml
     base64: true
+  - name: applicationCode
+    base64: false
+  - name: team
+    base64: false
+  - name: env
+    base64: false
 secretName: event
 workflowTemplates:
 - name: install
