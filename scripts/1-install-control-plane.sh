@@ -22,7 +22,12 @@ set -euo pipefail
 #       GITOPS_REPO     – the GitOps repo URL from Step 3
 #       GIT_EMAIL       – always "user@argo-init.com"
 #       GIT_USER        – always "argo-init"
-#
+# • **NEW:** After Argo CD + secrets/bootstrap complete, wait 10s and hit the
+#   Argo CD API via an internal `kubectl proxy` call to force a *hard refresh*
+#   of the `app-of-apps` Application (picks up freshly‑pushed manifests).
+###############################################################################
+
+###############################################################################
 # Environment variables you can pre‑seed
 # ───────────────────────────────────────
 #   RANCHER_TOKEN       – RKE2 cluster‑join token
@@ -174,8 +179,8 @@ EOF
 ###############################################################################
 # Argo CD installation
 ###############################################################################
-ARGOCD_PASS="${ARGOCD_PASS:-}"
-if [[ -z "$ARGOCD_PASS" ]]; then
+# (re-check in case ARGOCD_PASS was not provided earlier)
+if [[ -z "${ARGOCD_PASS:-}" ]]; then
   read -s -p "Enter desired Argo CD admin password: " ARGOCD_PASS && echo
 fi
 
@@ -348,6 +353,53 @@ if [[ -n "${OAUTH2_APPS:-}" ]]; then
     echo "✔ OAuth2 secret for ${APP} applied."
   done
 fi
+
+###############################################################################
+# Force Argo CD to *hard refresh* the root Application (app-of-apps)
+# ──────────────────────────────────────────────────────────────────────────
+# Some clusters race: the Application CR is created before the Argo CD
+# controller has fully reconciled, or before your Git repo content is
+# reachable. To ensure Argo CD immediately re‑scans Git and discovers all
+# nested Applications, we:
+#   1. Wait 10s (user request; gives secrets & CRDs time to settle).
+#   2. Start a local `kubectl proxy` (loopback‑only).
+#   3. `curl` the Argo CD API endpoint with `?refresh=hard`.
+# Auth: use Argo CD admin credentials we just set via Helm values.
+###############################################################################
+echo
+echo "⏳ Waiting 10s before forcing Argo CD refresh…"
+sleep 10
+
+echo "⌛ Waiting for argocd-server deployment to become Available (max 5m)…"
+kubectl -n argocd rollout status deploy/argocd-server --timeout=5m || true
+
+# pick a proxy port (8001 default; auto‑bump if busy)
+PROXY_PORT=8001
+if ss -ltn '( sport = :8001 )' >/dev/null 2>&1; then
+  PROXY_PORT="$(shuf -i 8002-9000 -n1)"
+fi
+
+echo "▶ Starting kubectl proxy on 127.0.0.1:${PROXY_PORT}…"
+kubectl proxy --port="${PROXY_PORT}" --address=127.0.0.1 --accept-hosts='^*$' >/tmp/kubectl-proxy-argocd.log 2>&1 &
+PROXY_PID=$!
+
+# ensure we stop the proxy on exit
+cleanup_proxy() { kill "$PROXY_PID" 2>/dev/null || true; }
+trap cleanup_proxy EXIT
+
+# Build Argo CD in‑cluster proxied URL.
+# NOTE: Chart deploys HTTPS service name 'argocd-server' (port 443).
+ARGO_API="http://127.0.0.1:${PROXY_PORT}/api/v1/namespaces/argocd/services/https:argocd-server:https/proxy/api/v1/applications/app-of-apps?refresh=hard"
+
+echo "↻ Requesting *hard* refresh of 'app-of-apps' via Argo CD API…"
+if curl -sfk -u "admin:${ARGOCD_PASS}" "${ARGO_API}" >/dev/null 2>&1; then
+  echo "✔ Forced refresh request sent to Argo CD."
+else
+  echo "⚠ Failed to contact Argo CD API to refresh 'app-of-apps'. See /tmp/kubectl-proxy-argocd.log for details." >&2
+fi
+
+# stop proxy immediately (trap will catch if already exited)
+cleanup_proxy
 
 ###############################################################################
 # All done!
