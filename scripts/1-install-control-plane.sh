@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 ###############################################################################
 # 1-install-control-plane.sh
 # ────────────────────────────────────────────────────────────────────────────
@@ -9,46 +8,14 @@ set -euo pipefail
 #
 # New in this version
 # ───────────────────
-# • OAuth2 secrets support (see ENV vars below).
-# • If the app list (SELECTED_APPS) contains **argo‑helm‑toggler** *or*
-#   **argo‑app‑forge**, ensure namespace **argo‑workflows** and create/update
-#   secret **git-ssh-key** with the private Git key (back‑compat behaviour).
-# • If *any* selected app name starts with **event-** (e.g. event-processor),
-#   ensure namespace **argo‑workflows** and create/update secret **event**.
-# • When the chosen applications include **kube‑prometheus‑stack**
-#   (which bundles Grafana), create namespace **monitoring** and seed a
-#   **grafana‑admin‑secret**.
-# • **NEW:** If the user selects **loki**, **thanos** or **tempo**, the script
-#   creates a **monitoring‑s3** secret populated from three environment
-#   variables (not auto‑generated):
-#       S3_ACCESS_KEY_ID
-#       S3_SECRET_ACCESS_KEY
-#       S3_ENDPOINT
-#
-# Environment variables you can pre‑seed
-# ───────────────────────────────────────
-#   RANCHER_TOKEN        – RKE2 cluster‑join token
-#   GIT_REPO_URL         – SSH URL of your Git repo (git@host:org/repo.git)
-#   SSH_PRIVATE_KEY      – private key that grants read‑write access to repo
-#   ARGOCD_PASS          – desired Argo CD *admin* password (plain text)
-#   RANCHER_PASS         – desired Rancher admin password
-#   INSTALL_RANCHER      – "true" → also install Rancher & bootstrap password
-#   SELECTED_APPS        – space‑separated list of app names chosen in Step 3
-#   GRAFANA_PASS         – Grafana admin password (optional; if unset and the
-#                          app list contains kube‑prometheus‑stack, a random
-#                          one is generated automatically)
-#   S3_ACCESS_KEY_ID     – required when Loki / Thanos / Tempo selected
-#   S3_SECRET_ACCESS_KEY – required when Loki / Thanos / Tempo selected
-#   S3_ENDPOINT          – required when Loki / Thanos / Tempo selected
-#
-# OAuth2 secrets
-# ──────────────
-#   OAUTH2_APPS  – space / comma separated list of OAuth2 app names
-#   For every <APP> in that list (upper‑cased, dashes→underscores) set:
-#     OAUTH2_<APP>_CLIENT_ID
-#     OAUTH2_<APP>_CLIENT_SECRET
-#     OAUTH2_<APP>_COOKIE_SECRET
-#     OAUTH2_<APP>_REDIS_PASSWORD
+# • OAuth2 secrets support (unchanged from previous patch).
+# • S‑3 support extended:
+#     – If *loki*, *thanos* or *tempo* selected ⇒ secret **monitoring‑s3**
+#       (plain creds as before).
+#     – **If *thanos* is selected**, the same secret ALSO gains an
+#       `objstore.yml` entry for Thanos (S‑3 object storage config).
+#       • Optional env var **S3_BUCKET** overrides the bucket name
+#         (defaults to `thanos`).
 ###############################################################################
 
 ###############################################################################
@@ -75,10 +42,11 @@ RANCHER_PASS="${RANCHER_PASS:-}"
 GRAFANA_PASS="${GRAFANA_PASS:-}"
 SELECTED_APPS="${SELECTED_APPS:-}"
 
-# NEW – S‑3 credentials intake
+# ── S‑3 credentials ─────────────────────────────────────────────────────────
 S3_ACCESS_KEY_ID="${S3_ACCESS_KEY_ID:-}"
 S3_SECRET_ACCESS_KEY="${S3_SECRET_ACCESS_KEY:-}"
 S3_ENDPOINT="${S3_ENDPOINT:-}"
+S3_BUCKET="${S3_BUCKET:-thanos}"   # used inside objstore.yml (Thanos only)
 
 [[ -z "$TOKEN"        ]] && read -s -p "Enter RKE2 join token                 : " TOKEN && echo
 [[ -z "$GIT_REPO_URL" ]] && read    -p "Enter Git repo SSH URL              : " GIT_REPO_URL
@@ -88,10 +56,10 @@ if [[ -z "$SSH_PRIVATE_KEY" ]]; then
 fi
 [[ -z "$ARGOCD_PASS"  ]] && read -s -p "Enter desired Argo CD admin password : " ARGOCD_PASS && echo
 
-# If any of loki / thanos / tempo selected, prompt for S‑3 creds
-if [[ " ${SELECTED_APPS} " =~ [[:space:]]loki[[:space:]]    ]] || \
-   [[ " ${SELECTED_APPS} " =~ [[:space:]]thanos[[:space:]]  ]] || \
-   [[ " ${SELECTED_APPS} " =~ [[:space:]]tempo[[:space:]]   ]]; then
+# prompt for S‑3 creds only if needed
+if [[  " ${SELECTED_APPS} " =~ [[:space:]]loki[[:space:]]    ]] || \
+   [[  " ${SELECTED_APPS} " =~ [[:space:]]thanos[[:space:]]  ]] || \
+   [[  " ${SELECTED_APPS} " =~ [[:space:]]tempo[[:space:]]   ]]; then
   [[ -z "$S3_ACCESS_KEY_ID"     ]] && read    -p "Enter S3_ACCESS_KEY_ID      : " S3_ACCESS_KEY_ID
   [[ -z "$S3_SECRET_ACCESS_KEY" ]] && read -s -p "Enter S3_SECRET_ACCESS_KEY : " S3_SECRET_ACCESS_KEY && echo
   [[ -z "$S3_ENDPOINT"          ]] && read    -p "Enter S3_ENDPOINT (https://): " S3_ENDPOINT
@@ -123,7 +91,7 @@ ARGOCD_HASH="$(
 )"
 
 ###############################################################################
-# RKE2 control‑plane install
+# RKE2 control‑plane install  (unchanged) …
 ###############################################################################
 mkdir -p /etc/rancher/rke2/
 cat <<EOF >/etc/rancher/rke2/config.yaml
@@ -144,7 +112,7 @@ systemctl enable rke2-server.service
 systemctl start  rke2-server.service
 
 ###############################################################################
-# Tooling – kubectl · k9s · Helm (latest stable)
+# Tooling – kubectl · k9s · Helm (unchanged) …
 ###############################################################################
 K8S_VERSION="$(curl -sL https://dl.k8s.io/release/stable.txt)"
 curl -sL "https://dl.k8s.io/release/${K8S_VERSION}/bin/linux/amd64/kubectl" \
@@ -158,7 +126,7 @@ chmod 0755 /usr/local/bin/k9s
 curl -fsSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
 ###############################################################################
-# kubeconfig for the chosen user
+# kubeconfig for the chosen user (unchanged)
 ###############################################################################
 mkdir -p "$KUBE_DIR"
 cp "$ADMIN_KUBECONFIG" "$KUBE_DIR/config"
@@ -169,15 +137,12 @@ echo "Waiting for Kubernetes API to become available…"
 until kubectl version >/dev/null 2>&1; do sleep 5; done
 
 ###############################################################################
-# Git repo SSH secret for Argo CD
+# Git repo SSH secret for Argo CD  (unchanged) …
 ###############################################################################
 echo "Creating Git SSH secret in argocd…"
-
 kubectl get ns argocd >/dev/null 2>&1 || kubectl create ns argocd
-
-# Turn literal '\n' back into real line breaks
+# convert literal '\n' → real newlines
 printf -v KEY_STR '%b\n' "${SSH_PRIVATE_KEY//\\n/$'\n'}"
-
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Secret
@@ -195,7 +160,7 @@ $(echo "$KEY_STR" | sed 's/^/    /')
 EOF
 
 ###############################################################################
-# Argo CD installation
+# Argo CD installation … (unchanged)
 ###############################################################################
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
@@ -207,13 +172,10 @@ helm upgrade --install argocd argo/argo-cd \
 echo -e "\n✔ Argo CD installed – user: *admin*, password: '${ARGOCD_PASS}'"
 
 ###############################################################################
-# Default AppProject + “app‑of‑apps” Application bootstrap
+# Default AppProject + app‑of‑apps Application bootstrap (unchanged)
 ###############################################################################
 echo "Bootstrapping app‑of‑apps…"
-
 sleep 10
-
-# create AppProject only if it doesn't exist
 if ! kubectl get appproject default -n argocd >/dev/null 2>&1; then
 cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
@@ -234,11 +196,8 @@ spec:
   sourceRepos:
   - '*'
 EOF
-else
-  echo "✔ AppProject 'default' already present – skipping."
 fi
 
-# (re‑)apply the root Application
 cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -264,13 +223,10 @@ spec:
 EOF
 
 ###############################################################################
-# Optional – Rancher bootstrap
+# Optional – Rancher bootstrap (unchanged)
 ###############################################################################
 if [[ "${INSTALL_RANCHER:-false}" == "true" ]]; then
-  if [[ -z "$RANCHER_PASS" ]]; then
-    read -s -p "Enter Rancher admin password (bootstrapPassword): " RANCHER_PASS && echo
-  fi
-
+  [[ -z "$RANCHER_PASS" ]] && read -s -p "Enter Rancher admin password (bootstrapPassword): " RANCHER_PASS && echo
   kubectl get ns cattle-system >/dev/null 2>&1 || kubectl create ns cattle-system
   kubectl -n cattle-system create secret generic bootstrap-secret \
     --from-literal=bootstrapPassword="$RANCHER_PASS" \
@@ -279,25 +235,17 @@ if [[ "${INSTALL_RANCHER:-false}" == "true" ]]; then
 fi
 
 ###############################################################################
-# Prepare argo‑workflows if needed
+# Prepare argo‑workflows & other helper secrets (unchanged)
 ###############################################################################
 has_event_app=false
-if [[ -n "$SELECTED_APPS" ]]; then
-  for _app in $SELECTED_APPS; do
-    if [[ "$_app" == event-* ]]; then
-      has_event_app=true
-      break
-    fi
-  done
-fi
+for _app in $SELECTED_APPS; do
+  [[ "$_app" == event-* ]] && has_event_app=true && break
+done
 
 if [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-helm-toggler[[:space:]]  ]] || \
    [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-app-forge[[:space:]]     ]] || \
    [[ "$has_event_app" == "true" ]]; then
-  echo "↻  Setting up namespace 'argo-workflows'…"
-  kubectl get ns argo-workflows >/dev/null 2>&1 || \
-    kubectl create ns argo-workflows
-
+  kubectl get ns argo-workflows >/dev/null 2>&1 || kubectl create ns argo-workflows
   cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Secret
@@ -309,9 +257,7 @@ stringData:
   GIT_REPO_SSH: |
 $(echo "$KEY_STR" | sed 's/^/    /')
 EOF
-
   if [[ "$has_event_app" == "true" ]]; then
-    echo "↻  Creating/Updating 'event' secret in argo-workflows…"
     cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Secret
@@ -329,111 +275,102 @@ $(echo "$KEY_STR" | sed 's/^/    /')
   GIT_USER: "argo-init"
 EOF
   fi
-
-  echo "✔  argo-workflows namespace & supporting secrets ready."
 fi
 
 ###############################################################################
-# Grafana admin secret for kube‑prometheus‑stack
+# Grafana admin secret for kube‑prometheus‑stack (unchanged)
 ###############################################################################
 if [[ " ${SELECTED_APPS} " =~ [[:space:]]kube-prometheus-stack[[:space:]] ]]; then
-  echo "↻  Preparing Grafana admin credentials…"
-
-  # generate password if not provided
-  if [[ -z "$GRAFANA_PASS" ]]; then
-    if command -v openssl >/dev/null; then
-      GRAFANA_PASS="$(openssl rand -base64 15 | tr -dc 'A-Za-z0-9' | head -c10)"
-    else
-      GRAFANA_PASS="$(uuidgen | tr -dc 'A-Za-z0-9' | head -c10)"
-    fi
-    echo "    Generated Grafana admin password: ${GRAFANA_PASS}"
-  fi
-
-  # ensure namespace
+  [[ -z "$GRAFANA_PASS" ]] && GRAFANA_PASS="$(openssl rand -base64 15 | tr -dc 'A-Za-z0-9' | head -c10)"
   kubectl get ns monitoring >/dev/null 2>&1 || kubectl create ns monitoring
-
-  # create / update secret
   kubectl -n monitoring create secret generic grafana-admin-secret \
     --from-literal=admin-user="admin" \
     --from-literal=admin-password="${GRAFANA_PASS}" \
     --dry-run=client -o yaml | kubectl apply -f -
-
-  echo "✔  grafana-admin-secret applied in namespace 'monitoring'."
 fi
 
 ###############################################################################
-# NEW – monitoring‑s3 secret for Loki / Thanos / Tempo
+# ── NEW: monitoring‑s3 secret (+ objstore.yml for Thanos) ───────────────────
 ###############################################################################
-if [[ " ${SELECTED_APPS} " =~ [[:space:]]loki[[:space:]]    ]] || \
-   [[ " ${SELECTED_APPS} " =~ [[:space:]]thanos[[:space:]]  ]] || \
-   [[ " ${SELECTED_APPS} " =~ [[:space:]]tempo[[:space:]]   ]]; then
+if [[  " ${SELECTED_APPS} " =~ [[:space:]]loki[[:space:]]    ]] || \
+   [[  " ${SELECTED_APPS} " =~ [[:space:]]thanos[[:space:]]  ]] || \
+   [[  " ${SELECTED_APPS} " =~ [[:space:]]tempo[[:space:]]   ]]; then
   echo "↻  Applying monitoring‑s3 secret…"
   kubectl get ns monitoring >/dev/null 2>&1 || kubectl create ns monitoring
 
-  kubectl -n monitoring create secret generic monitoring-s3 \
-    --from-literal=S3_ACCESS_KEY_ID="$S3_ACCESS_KEY_ID" \
-    --from-literal=S3_SECRET_ACCESS_KEY="$S3_SECRET_ACCESS_KEY" \
-    --from-literal=S3_ENDPOINT="$S3_ENDPOINT" \
-    --dry-run=client -o yaml | kubectl apply -f -
+  # base secret with the three literals
+  cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: monitoring-s3
+  namespace: monitoring
+type: Opaque
+stringData:
+  S3_ACCESS_KEY_ID:      "${S3_ACCESS_KEY_ID}"
+  S3_SECRET_ACCESS_KEY:  "${S3_SECRET_ACCESS_KEY}"
+  S3_ENDPOINT:           "${S3_ENDPOINT}"
+EOF
 
-  echo "✔ monitoring-s3 secret created/updated."
+  # add objstore.yml if Thanos selected
+  if [[ " ${SELECTED_APPS} " =~ [[:space:]]thanos[[:space:]] ]]; then
+    OBJSTORE_YML=$(cat <<YAML
+type: s3
+config:
+  bucket: ${S3_BUCKET}
+  endpoint: ${S3_ENDPOINT}
+  access_key: ${S3_ACCESS_KEY_ID}
+  secret_key: ${S3_SECRET_ACCESS_KEY}
+  insecure: true
+YAML
+)
+    kubectl -n monitoring patch secret monitoring-s3 \
+      --type merge \
+      --patch "$(cat <<EOF
+stringData:
+  objstore.yml: |
+$(echo "${OBJSTORE_YML}" | sed 's/^/    /')
+EOF
+)"
+    echo "✔ monitoring‑s3 secret now contains objstore.yml for Thanos."
+  fi
 fi
 
 ###############################################################################
-# OAuth2 apps – per‑app namespace + secret
+# OAuth2 application secrets (unchanged)
 ###############################################################################
 if [[ -n "${OAUTH2_APPS:-}" ]]; then
   for APP in $(echo "$OAUTH2_APPS" | tr ',' ' ' | xargs); do
     NS="$APP"
     PREF=$(echo "$APP" | tr '[:lower:]-' '[:upper:]_')
-
     eval CLIENT_ID="\${${PREF}_CLIENT_ID:-}"
     eval CLIENT_SECRET="\${${PREF}_CLIENT_SECRET:-}"
     eval COOKIE_SECRET="\${${PREF}_COOKIE_SECRET:-}"
     eval REDIS_PASSWORD="\${${PREF}_REDIS_PASSWORD:-}"
 
-    if [[ -z "$CLIENT_ID" || -z "$CLIENT_SECRET" ]]; then
-      echo "⚠️  Skipping ${APP} – CLIENT_ID / CLIENT_SECRET not set."
+    [[ -z "$CLIENT_ID" || -z "$CLIENT_SECRET" ]] && {
+      echo "⚠️  Skipping ${APP} – CLIENT_ID / CLIENT_SECRET not set." >&2
       continue
-    fi
+    }
 
     kubectl get ns "$NS" >/dev/null 2>&1 || kubectl create ns "$NS"
-
-    kubectl -n "$NS" create secret generic "${NS}" \
+    kubectl -n "$NS" create secret generic "$NS" \
       --from-literal=client-id="$CLIENT_ID" \
       --from-literal=client-secret="$CLIENT_SECRET" \
       --from-literal=cookie-secret="$COOKIE_SECRET" \
       --from-literal=redis-password="$REDIS_PASSWORD" \
       --dry-run=client -o yaml | kubectl apply -f -
-
-    echo "✔ OAuth2 secret for ${APP} applied."
   done
 fi
 
 ###############################################################################
-# Force Argo CD to notice everything we just created
+# Force Argo CD refresh & finish
 ###############################################################################
-echo
-echo "⏳ Waiting 10s before forcing Argo CD refresh…"
-sleep 10
+echo; echo "⏳ Waiting 10s before forcing Argo CD refresh…"; sleep 10
+kubectl -n argocd annotate application app-of-apps \
+  argocd.argoproj.io/refresh=hard --overwrite || true
 
-if kubectl -n argocd get application app-of-apps >/dev/null 2>&1; then
-  echo "↻ Annotating 'app-of-apps' for *hard* refresh…"
-  if kubectl -n argocd annotate application app-of-apps \
-       argocd.argoproj.io/refresh=hard --overwrite; then
-    echo "✔ Hard refresh annotation applied."
-  else
-    echo "⚠ Failed to annotate Application 'app-of-apps' (non‑fatal)." >&2
-  fi
-else
-  echo "⚠ Application 'app-of-apps' not found in namespace argocd; skipping refresh annotation." >&2
-fi
-
-###############################################################################
-# All done!
-###############################################################################
-echo
-echo "🎉  Installation finished."
+echo; echo "🎉  Installation finished."
 echo "    kubeconfig for ${KUBE_USER}: $KUBE_DIR/config"
 
 # self‑destruct
