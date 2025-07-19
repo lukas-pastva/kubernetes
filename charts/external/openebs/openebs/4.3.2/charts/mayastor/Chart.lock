@@ -1,0 +1,24 @@
+dependencies:
+- name: crds
+  repository: ""
+  version: 2.9.1
+- name: etcd
+  repository: https://charts.bitnami.com/bitnami
+  version: 8.6.0
+- name: jaeger-operator
+  repository: https://jaegertracing.github.io/helm-charts
+  version: 2.50.1
+- name: loki
+  repository: https://grafana.github.io/helm-charts
+  version: 6.29.0
+- name: alloy
+  repository: https://grafana.github.io/helm-charts
+  version: 1.0.1
+- name: nats
+  repository: https://nats-io.github.io/k8s/helm/charts/
+  version: 0.19.14
+- name: localpv-provisioner
+  repository: https://openebs.github.io/dynamic-localpv-provisioner
+  version: 4.3.0
+digest: sha256:69b84ee20a355ade418bccfdbfa6bfc91ab9dec60d8688eee612b9f55c08ba1c
+generated: "2025-06-23T13:12:47.598503608Z"

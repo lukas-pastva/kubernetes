@@ -193,3 +193,10 @@ appProjects:
         autoSync: true
         valueFiles: true
         syncWave: '-2'
+  - namespace: openebs
+    applications:
+      - name: openebs
+        repoURL: git@gitlab.com:tronic-sk/kubernetes.git
+        path: external/openebs/openebs/4.3.2
+        autoSync: true
+        valueFiles: true
