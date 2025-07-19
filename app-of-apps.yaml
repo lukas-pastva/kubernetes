@@ -135,7 +135,6 @@ appProjects:
         path: external/grafana/promtail/6.17.0
         autoSync: true
         valueFiles: true
-        skipCrds: true
       - name: loki
         repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/grafana/loki/6.30.1

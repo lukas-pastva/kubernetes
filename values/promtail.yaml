@@ -1,0 +1,7 @@
+config:
+  snippets:
+    pipelineStages:
+      - regex:
+          expression: '.*level=(?P<level>\w+).*'
+      - labels:
+          level:
