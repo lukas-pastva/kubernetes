@@ -8,6 +8,7 @@ grafana:
     enabled: true
     hosts:
       - grafana.tronic.sk
+    ingressClassName: nginx
   admin:
     existingSecret: "grafana-admin-secret"
 prometheus:
