@@ -1,0 +1,22 @@
+query:
+  stores:
+    - dnssrv+_grpc._tcp.monitoring-kube-promet-thanos-discovery.monitoring.svc.cluster.local:10901
+  replicaLabel:
+    - prometheus_replica
+compactor:
+  enabled: true
+  persistence:
+    enabled: false
+storegateway:
+  enabled: true
+  persistence:
+    enabled: false
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    additionalLabels:
+      release: monitoring
+  prometheusRule:
+    enabled: false
+existingObjstoreSecret: "monitoring-s3"
