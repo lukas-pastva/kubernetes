@@ -3,6 +3,7 @@ alertmanager:
     enabled: true
     hosts:
       - alertmanager.tronic.sk
+    ingressClassName: nginx
 grafana:
   ingress:
     enabled: true
@@ -16,3 +17,4 @@ prometheus:
     enabled: true
     hosts:
       - prometheus.tronic.sk
+    ingressClassName: nginx
