@@ -2,12 +2,6 @@ deployments:
 
   web-example-sql:
     image: mariadb:11.3
-    resources:
-      limits:
-        memory: 300Mi
-      requests:
-        cpu: 230m
-        memory: 250Mi
     ports:
       - name: http
         port: 3306

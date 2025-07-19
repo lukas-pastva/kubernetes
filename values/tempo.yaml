@@ -12,136 +12,93 @@ serviceAccount:
 rbac:
   create: false
   pspEnabled: false
-memcached:
-  resources:
-    requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      memory: 100Mi
 gateway:
   enabled: true
-  resources:
-    requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      memory: 100Mi
   ingress:
     enabled: true
     hosts:
       - tempo.tronic.sk
     ingressClassName: "nginx" 
 distributor:
-  resources:
-    requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      memory: 100Mi
-  replicas: 2
+  replicas: 1
 queryFrontend:
-  resources:
-    requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      memory: 100Mi
   extraArgs:
     - '-config.expand-env=true'
   extraEnv:
     - name: S3_TEMPO_ENDPOINT
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoEndpoint
     - name: S3_TEMPO_ACCESS_KEY_ID
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoAccessKeyID
     - name: S3_TEMPO_SECRET_ACCESS_KEY
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoSecretAccessKey
 querier:
-  resources:
-    requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      memory: 100Mi
   extraArgs:
     - '-config.expand-env=true'
   extraEnv:
     - name: S3_TEMPO_ENDPOINT
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoEndpoint
     - name: S3_TEMPO_ACCESS_KEY_ID
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoAccessKeyID
     - name: S3_TEMPO_SECRET_ACCESS_KEY
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoSecretAccessKey
 compactor:
-  resources:
-    requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      memory: 100Mi
   extraArgs:
     - '-config.expand-env=true'
   extraEnv:
     - name: S3_TEMPO_ENDPOINT
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoEndpoint
     - name: S3_TEMPO_ACCESS_KEY_ID
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoAccessKeyID
     - name: S3_TEMPO_SECRET_ACCESS_KEY
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoSecretAccessKey
 ingester:
-  replicas: 3
-  resources:
-    requests:
-      cpu: 20m
-      memory: 50Mi
-    limits:
-      memory: 100Mi
+  replicas: 1
   config:
-    replication_factor: 3
+    replication_factor: 1
   extraArgs:
     - '-config.expand-env=true'
   extraEnv:
     - name: S3_TEMPO_ENDPOINT
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoEndpoint
     - name: S3_TEMPO_ACCESS_KEY_ID
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoAccessKeyID
     - name: S3_TEMPO_SECRET_ACCESS_KEY
       valueFrom:
         secretKeyRef:
-          name: vault-monitoring
+          name: monitoring-s3
           key: TempoSecretAccessKey
 traces:
   jaeger:
@@ -175,7 +132,7 @@ storage:
   trace:
     backend: s3
     s3:
-      bucket: customer-tronic-sk-tempo
+      bucket: tempo
       region: auto
       endpoint: ${S3_TEMPO_ENDPOINT}
       access_key: "${S3_TEMPO_ACCESS_KEY_ID}"
