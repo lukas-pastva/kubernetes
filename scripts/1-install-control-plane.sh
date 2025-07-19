@@ -310,6 +310,9 @@ stringData:
   S3_ACCESS_KEY_ID:      "${S3_ACCESS_KEY_ID}"
   S3_SECRET_ACCESS_KEY:  "${S3_SECRET_ACCESS_KEY}"
   S3_ENDPOINT:           "${S3_ENDPOINT}"
+  accessKeyID:           "${S3_ACCESS_KEY_ID}"
+  secretAccessKey:       "${S3_SECRET_ACCESS_KEY}"
+  endpoint:              "${S3_ENDPOINT}"
 EOF
 
   # add objstore.yml if Thanos selected
