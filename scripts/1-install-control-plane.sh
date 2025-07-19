@@ -321,6 +321,8 @@ config:
   endpoint: ${S3_ENDPOINT}
   access_key: ${S3_ACCESS_KEY_ID}
   secret_key: ${S3_SECRET_ACCESS_KEY}
+  bucket_lookup_type: path
+  signature_version2: false
 YAML
 )
     kubectl -n monitoring patch secret monitoring-s3 \
