@@ -32,7 +32,7 @@ extraObjects:
         telemetry:
           logs:
             encoding: console
-            level: info
+            level: debug
           metrics:
             readers:
               - pull:
