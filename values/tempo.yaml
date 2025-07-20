@@ -81,7 +81,7 @@ storage:
   trace:
     backend: s3
     s3:
-      bucket: tempo
+      bucket: openprime
       region: auto
       endpoint: ${S3_TEMPO_ENDPOINT}
       access_key: ${S3_TEMPO_ACCESS_KEY_ID}
