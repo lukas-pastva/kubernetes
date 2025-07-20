@@ -1,0 +1,19 @@
+engines:
+  local:
+    lvm:
+      enabled: false      # no LVM LocalPV
+    zfs:
+      enabled: false      # no ZFS LocalPV
+  replicated:
+    mayastor:
+      enabled: false      # no Mayastor ⇒ no etcd
+
+loki:
+  enabled: false          # don’t install Loki or its StorageClasses
+alloy:
+  enabled: false          # don’t install Alloy / logging agent
+
+localpv-provisioner:
+  hostpathClass:
+    name: openebs-hostpath   # will be “openebs-hostpath” by default anyway
+    # basePath: /var/openebs/local  # ← customise if you need a different path

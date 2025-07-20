@@ -5,3 +5,5 @@ config:
           expression: '.*level=(?P<level>\w+).*'
       - labels:
           level:
+  clients:
+    - url: http://loki-write:3100/loki/api/v1/push
