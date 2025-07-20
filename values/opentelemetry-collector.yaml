@@ -5,7 +5,8 @@ extraObjects:
     name: opentelemetry
     namespace: opentelemetry
   spec:
-    mode: "sidecar"
+    mode: "deployment"
+    replicas: 1
     config: |
       receivers:
         otlp:
@@ -24,7 +25,7 @@ extraObjects:
         logging:
           loglevel: info
         otlp:
-          endpoint: http://monitoring-tempo-distributor.monitoring.svc.cluster.local:4317
+          endpoint: http://tempo-distributor.monitoring.svc.cluster.local:4317
           tls:
             insecure: true
 

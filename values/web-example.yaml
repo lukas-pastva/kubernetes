@@ -28,9 +28,9 @@ deployments:
   web-example:
     image: lukaspastva/web-baby:3e348df6b851f8519f8d0f5e515f3ce4a1d63d83
     annotations:
-      instrumentation.opentelemetry.io/inject-nodejs: "sam/opentelemetry"
-      # instrumentation.opentelemetry.io/inject-nginx: "true"
-      sidecar.opentelemetry.io/inject: opentelemetry/opentelemetry
+      instrumentation.opentelemetry.io/inject-nodejs: web-example/opentelemetry
+      # sidecar.opentelemetry.io/inject: "true" # or local
+      sidecar.opentelemetry.io/inject: opentelemetry
     resources:
       limits:
         memory: 200Mi
@@ -108,24 +108,46 @@ extraObjects:
     spec:
       exporter:
         endpoint: http://localhost:4317
-      propagators:
-        - tracecontext
-        - baggage
-        - b3
+      propagators: [ tracecontext, baggage, b3 ]
+
+      nodejs: {}
+      java:   {}
+      python: {}
+
       sampler:
         type: parentbased_traceidratio
         argument: "0.25"
-      python:
-        env:
-          - name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: http://localhost:4318
-      java:
-        env:
-          - name: OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
-            value: grpc
-          - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-            value: http://localhost:4317
-          - name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: http://localhost:4317
-          - name: OTEL_EXPORTER_OTLP_PROTOCOL
-            value: grpc
+
+  # or local
+  # - apiVersion: opentelemetry.io/v1beta1
+  #   kind: OpenTelemetryCollector
+  #   metadata:
+  #     name: opentelemetry
+  #     namespace: web-example
+  #   spec:
+  #     mode: sidecar
+  #     config: |
+  #       receivers:
+  #         otlp:
+  #           protocols:
+  #             grpc:
+  #             http:
+  #       processors:
+  #         batch: {}
+  #         memory_limiter:
+  #           check_interval: 5s
+  #           limit_mib: 409
+  #           spike_limit_mib: 128
+  #       exporters:
+  #         otlp:
+  #           endpoint: tempo-distributor.monitoring.svc.cluster.local:4317
+  #           tls:
+  #             insecure: true
+  #         logging:
+  #           loglevel: info
+  #       service:
+  #         pipelines:
+  #           traces:
+  #             receivers: [otlp]
+  #             processors: [memory_limiter, batch]
+  #             exporters: [otlp, logging]
