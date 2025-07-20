@@ -37,7 +37,10 @@ gateway:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - tempo.tronic.sk
+      - host: tempo.tronic.sk
+        paths:
+          - path: /
+            pathType: Prefix
 
 distributor:
   replicas: 1
