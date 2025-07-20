@@ -41,7 +41,7 @@ grafana:
           uid: P5DCFC7561CCDE821
         - name: Tempo
           type: tempo
-          url: http://tempo-query-frontend.monitoring.svc.cluster.local:3100
+          url: http://tempo-query-frontend.monitoring.svc.cluster.local:3200
           access: proxy
         - name: Loki
           type: loki
