@@ -18,6 +18,13 @@ global:
         secretKeyRef:
           name: monitoring-s3
           key: secretAccessKey
+
+    - name: S3_BUCKET
+      valueFrom:
+        secretKeyRef:
+          name: monitoring-s3
+          key: S3_BUCKET
+
     - name: AWS_S3_FORCE_PATH_STYLE
       value: "true"
 
@@ -31,27 +38,21 @@ ingress:
     - loki.tronic.sk
 resultsCache:
   allocatedMemory: 256
-  maxItemMemory: 4
+  maxItemMemory:   4
   resources:
-    requests:
-      cpu: 50m
-      memory: 300Mi
-    limits:
-      cpu: 200m
-      memory: 300Mi
+    requests: { cpu: 50m,  memory: 300Mi }
+    limits:   { cpu: 200m, memory: 300Mi }
+
 chunksCache:
   allocatedMemory: 1024
-  maxItemMemory: 8
+  maxItemMemory:   8
   resources:
-    requests:
-      cpu: 100m
-      memory: 1200Mi
-    limits:
-      cpu: 300m
-      memory: 1200Mi
+    requests: { cpu: 100m, memory: 1200Mi }
+    limits:   { cpu: 300m, memory: 1200Mi }
 loki:
   commonConfig:
     replication_factor: 1
+
   schemaConfig:
     configs:
       - from: 2024-04-01
@@ -66,15 +67,16 @@ loki:
 
   storage:
     bucketNames:
-      chunks: openprime
-      ruler: openprime
-      admin: openprime
+      chunks: ${S3_BUCKET}
+      ruler:  ${S3_BUCKET}
+      admin:  ${S3_BUCKET}
+
     type: s3
     s3:
       region: auto
-      endpoint: ${S3_ENDPOINT}
-      accessKeyId: ${S3_ACCESS_KEY_ID}
-      secretAccessKey: ${S3_SECRET_ACCESS_KEY}
+      endpoint:       ${S3_ENDPOINT}
+      accessKeyId:    ${S3_ACCESS_KEY_ID}
+      secretAccessKey:${S3_SECRET_ACCESS_KEY}
       s3ForcePathStyle: true
 
   rulerConfig:
@@ -95,25 +97,18 @@ backend:
   persistence:
     storageClass: openebs-hostpath
     enableStatefulSetAutoDeletePVC: false
-  extraArgs:
-    - -config.expand-env=true
+  extraArgs: [ "-config.expand-env=true" ]
 
 write:
   replicas: 1
   persistence:
     storageClass: openebs-hostpath
-  extraArgs:
-    - -config.expand-env=true
+  extraArgs: [ "-config.expand-env=true" ]
 
 read:
   replicas: 1
   persistence:
     storageClass: openebs-hostpath
-  extraArgs:
-    - -config.expand-env=true
-
-lokiCanary:
-  enabled: false
-
-test:
-  enabled: false
+  extraArgs: [ "-config.expand-env=true" ]
+lokiCanary: { enabled: false }
+test:       { enabled: false }
