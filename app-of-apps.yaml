@@ -147,7 +147,7 @@ appProjects:
         valueFiles: true
       - name: tempo
         repoURL: git@github.com:lukas-pastva/kubernetes.git
-        path: external/grafana/tempo/1.23.2
+        path: external/grafana/tempo-distributed/1.45.0
         autoSync: true
         valueFiles: true
   - namespace: rancher

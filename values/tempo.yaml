@@ -1,129 +1,75 @@
 global:
   dnsService: rke2-coredns-rke2-coredns
+  extraEnv:
+    - name: S3_TEMPO_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: monitoring-s3
+          key: S3_ENDPOINT
+    - name: S3_TEMPO_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: monitoring-s3
+          key: S3_ACCESS_KEY_ID
+    - name: S3_TEMPO_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: monitoring-s3
+          key: S3_SECRET_ACCESS_KEY
+    - name: AWS_S3_FORCE_PATH_STYLE
+      value: "true"
 tempo:
   searchEnabled: true
+
 reportingEnabled: false
+
 serviceAccount:
   create: true
-  name: null
-  imagePullSecrets: []
-  annotations: {}
-  automountServiceAccountToken: false        
+  automountServiceAccountToken: false
+
 rbac:
   create: false
   pspEnabled: false
+
 gateway:
   enabled: true
   ingress:
     enabled: true
+    ingressClassName: nginx
     hosts:
       - tempo.tronic.sk
-    ingressClassName: "nginx" 
+
 distributor:
   replicas: 1
-queryFrontend:
-  extraArgs:
-    - '-config.expand-env=true'
-  extraEnv:
-    - name: S3_TEMPO_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoEndpoint
-    - name: S3_TEMPO_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoAccessKeyID
-    - name: S3_TEMPO_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoSecretAccessKey
-querier:
-  extraArgs:
-    - '-config.expand-env=true'
-  extraEnv:
-    - name: S3_TEMPO_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoEndpoint
-    - name: S3_TEMPO_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoAccessKeyID
-    - name: S3_TEMPO_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoSecretAccessKey
-compactor:
-  extraArgs:
-    - '-config.expand-env=true'
-  extraEnv:
-    - name: S3_TEMPO_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoEndpoint
-    - name: S3_TEMPO_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoAccessKeyID
-    - name: S3_TEMPO_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoSecretAccessKey
+
 ingester:
   replicas: 1
   config:
     replication_factor: 1
   extraArgs:
-    - '-config.expand-env=true'
-  extraEnv:
-    - name: S3_TEMPO_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoEndpoint
-    - name: S3_TEMPO_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoAccessKeyID
-    - name: S3_TEMPO_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: TempoSecretAccessKey
+    - -config.expand-env=true
+
+queryFrontend:
+  extraArgs: [ "-config.expand-env=true" ]
+
+querier:
+  extraArgs: [ "-config.expand-env=true" ]
+
+compactor:
+  extraArgs: [ "-config.expand-env=true" ]
 traces:
   jaeger:
-    grpc:
-      enabled: true
-      receiverConfig: {}
-    thriftBinary:
-      enabled: true
-      receiverConfig: {}
-    thriftCompact:
-      enabled: true
-      receiverConfig: {}
-    thriftHttp:
-      enabled: true
-      receiverConfig: {}
+    grpc:          { enabled: true }
+    thriftBinary:  { enabled: true }
+    thriftCompact: { enabled: true }
+    thriftHttp:    { enabled: true }
   otlp:
-    http:
-      enabled: true
-      receiverConfig: {}
-    grpc:
-      enabled: true
-      receiverConfig: {}
+    http: { enabled: true }
+    grpc: { enabled: true }
 metaMonitoring:
   serviceMonitor:
     enabled: true
+
 prometheusRule:
   enabled: true
 server:
@@ -135,5 +81,5 @@ storage:
       bucket: tempo
       region: auto
       endpoint: ${S3_TEMPO_ENDPOINT}
-      access_key: "${S3_TEMPO_ACCESS_KEY_ID}"
-      secret_key: "${S3_TEMPO_SECRET_ACCESS_KEY}"
+      access_key: ${S3_TEMPO_ACCESS_KEY_ID}
+      secret_key: ${S3_TEMPO_SECRET_ACCESS_KEY}
