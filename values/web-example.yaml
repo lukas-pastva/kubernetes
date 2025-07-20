@@ -26,7 +26,7 @@ deployments:
       value: "web-example-root-password"
 
   web-example:
-    image: lukaspastva/web-baby:3e348df6b851f8519f8d0f5e515f3ce4a1d63d83
+    image: lukaspastva/web-baby:202108b3855453e39a66eca8bda05fe3fc671f76
     annotations:
       sidecar.opentelemetry.io/inject: "true"
       instrumentation.opentelemetry.io/inject-nodejs: "web-example/opentelemetry"
