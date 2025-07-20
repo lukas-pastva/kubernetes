@@ -29,8 +29,7 @@ deployments:
     image: lukaspastva/web-baby:3e348df6b851f8519f8d0f5e515f3ce4a1d63d83
     annotations:
       instrumentation.opentelemetry.io/inject-nodejs: web-example/opentelemetry
-      # sidecar.opentelemetry.io/inject: "true" # or local
-      sidecar.opentelemetry.io/inject: opentelemetry
+      sidecar.opentelemetry.io/inject: opentelemetry/opentelemetry-sidecar
     resources:
       limits:
         memory: 200Mi
@@ -117,37 +116,3 @@ extraObjects:
       sampler:
         type: parentbased_traceidratio
         argument: "0.25"
-
-  # or local
-  # - apiVersion: opentelemetry.io/v1beta1
-  #   kind: OpenTelemetryCollector
-  #   metadata:
-  #     name: opentelemetry
-  #     namespace: web-example
-  #   spec:
-  #     mode: sidecar
-  #     config: |
-  #       receivers:
-  #         otlp:
-  #           protocols:
-  #             grpc:
-  #             http:
-  #       processors:
-  #         batch: {}
-  #         memory_limiter:
-  #           check_interval: 5s
-  #           limit_mib: 409
-  #           spike_limit_mib: 128
-  #       exporters:
-  #         otlp:
-  #           endpoint: tempo-distributor.monitoring.svc.cluster.local:4317
-  #           tls:
-  #             insecure: true
-  #         logging:
-  #           loglevel: info
-  #       service:
-  #         pipelines:
-  #           traces:
-  #             receivers: [otlp]
-  #             processors: [memory_limiter, batch]
-  #             exporters: [otlp, logging]
