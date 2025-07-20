@@ -116,6 +116,11 @@ appProjects:
         autoSync: true
         valueFiles: true
         syncWave: '-1'
+      - name: ingress-nginx-extra
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
+        path: external/lukas-pastva/helm-chartie/1.0.8
+        autoSync: true
+        valueFiles: true
   - namespace: monitoring
     applications:
       - name: kube-prometheus-stack-crds
