@@ -2,6 +2,24 @@ deploymentMode: SimpleScalable
 
 global:
   dnsService: rke2-coredns-rke2-coredns
+  extraEnv:
+    - name: S3_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: monitoring-s3
+          key: endpoint
+    - name: S3_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: monitoring-s3
+          key: accessKeyID
+    - name: S3_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: monitoring-s3
+          key: secretAccessKey
+    - name: AWS_S3_FORCE_PATH_STYLE
+      value: "true"
 
 gateway:
   enabled: false
@@ -10,8 +28,27 @@ ingress:
   enabled: true
   ingressClassName: nginx
   hosts:
-    - loki.tronic.sk
-
+    - loki.openprime.sk
+resultsCache:
+  allocatedMemory: 256
+  maxItemMemory: 4
+  resources:
+    requests:
+      cpu: 50m
+      memory: 300Mi
+    limits:
+      cpu: 200m
+      memory: 300Mi
+chunksCache:
+  allocatedMemory: 1024
+  maxItemMemory: 8
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1200Mi
+    limits:
+      cpu: 300m
+      memory: 1200Mi
 loki:
   schemaConfig:
     configs:
@@ -27,9 +64,9 @@ loki:
 
   storage:
     bucketNames:
-      chunks: loki
-      ruler: loki
-      admin: loki
+      chunks: openprime
+      ruler: openprime
+      admin: openprime
     type: s3
     s3:
       region: auto
@@ -58,22 +95,6 @@ backend:
     enableStatefulSetAutoDeletePVC: false
   extraArgs:
     - -config.expand-env=true
-  extraEnv:
-    - name: S3_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: endpoint
-    - name: S3_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: accessKeyID
-    - name: S3_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: secretAccessKey
 
 write:
   replicas: 3
@@ -81,22 +102,6 @@ write:
     storageClass: openebs-hostpath
   extraArgs:
     - -config.expand-env=true
-  extraEnv:
-    - name: S3_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: endpoint
-    - name: S3_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: accessKeyID
-    - name: S3_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: secretAccessKey
 
 read:
   replicas: 3
@@ -104,22 +109,6 @@ read:
     storageClass: openebs-hostpath
   extraArgs:
     - -config.expand-env=true
-  extraEnv:
-    - name: S3_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: endpoint
-    - name: S3_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: accessKeyID
-    - name: S3_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: monitoring-s3
-          key: secretAccessKey
 
 lokiCanary:
   enabled: false

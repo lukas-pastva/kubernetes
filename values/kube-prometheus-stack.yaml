@@ -1,3 +1,21 @@
+kubeControllerManager:
+  serviceMonitor:
+    enabled: false 
+kubeEtcd:
+  serviceMonitor:
+    enabled: false 
+kubeScheduler:
+  serviceMonitor:
+    enabled: false 
+defaultRules:
+  disabled:
+    KubeControllerManagerDown: true
+    KubeSchedulerDown: true
+    etcdMembersDown: true
+    etcdInsufficientMembers: true
+    KubeProxyDown: true
+crds:
+  enabled: false
 alertmanager:
   ingress:
     enabled: true
@@ -12,9 +30,43 @@ grafana:
     ingressClassName: nginx
   admin:
     existingSecret: "grafana-admin-secret"
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://thanos-query.monitoring:9090
+          access: proxy
+          uid: P5DCFC7561CCDE821
+        - name: Tempo
+          type: tempo
+          url: http://tempo-query-frontend.monitoring.svc.cluster.local:3100
+          access: proxy
+        - name: Loki
+          type: loki
+          url: http://loki-read.monitoring:3100
+          access: proxy
+  plugins:
+    - agenty-flowcharting-panel
+    - camptocamp-prometheus-alertmanager-datasource
+    - grafana-athena-datasource
+    - isovalent-hubble-datasource
 prometheus:
   ingress:
     enabled: true
     hosts:
       - prometheus.tronic.sk
     ingressClassName: nginx
+  thanosService:
+    enabled: true
+  prometheusSpec:
+    enableRemoteWriteReceiver: true
+    thanos:
+      image: quay.io/thanos/thanos:v0.32.2
+      objectStorageConfig:
+        key: "objstore.yml"
+        name: "monitoring-s3"
+    walCompression: false
+prometheusOperator:
+  enabled: true

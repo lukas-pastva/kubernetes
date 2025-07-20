@@ -1,6 +1,6 @@
 query:
   stores:
-    - dnssrv+_grpc._tcp.monitoring-kube-promet-thanos-discovery.monitoring.svc.cluster.local:10901
+    - dnssrv+_grpc._tcp.kube-prometheus-stack-thanos-discovery.monitoring.svc.cluster.local:10901
   replicaLabel:
     - prometheus_replica
 compactor:
