@@ -16,13 +16,17 @@ global:
         secretKeyRef:
           name: monitoring-s3
           key: S3_SECRET_ACCESS_KEY
+    - name: S3_TEMPO_BUCKET
+      valueFrom:
+        secretKeyRef:
+          name: monitoring-s3
+          key: S3_BUCKET
     - name: AWS_S3_FORCE_PATH_STYLE
       value: "true"
 tempo:
   searchEnabled: true
 
 reportingEnabled: false
-
 serviceAccount:
   create: true
   automountServiceAccountToken: false
@@ -53,36 +57,44 @@ ingester:
     - -config.expand-env=true
 
 queryFrontend:
-  extraArgs: [ "-config.expand-env=true" ]
+  extraArgs:
+    - -config.expand-env=true
 
 querier:
-  extraArgs: [ "-config.expand-env=true" ]
+  extraArgs:
+    - -config.expand-env=true
 
 compactor:
-  extraArgs: [ "-config.expand-env=true" ]
+  extraArgs:
+    - -config.expand-env=true
+
 traces:
   jaeger:
     grpc:          { enabled: true }
     thriftBinary:  { enabled: true }
     thriftCompact: { enabled: true }
     thriftHttp:    { enabled: true }
+
   otlp:
     http: { enabled: true }
     grpc: { enabled: true }
+
 metaMonitoring:
   serviceMonitor:
     enabled: true
 
 prometheusRule:
   enabled: true
+
 server:
   logLevel: debug
+
 storage:
   trace:
     backend: s3
     s3:
-      bucket: openprime
-      region: auto
-      endpoint: ${S3_TEMPO_ENDPOINT}
+      bucket:     ${S3_TEMPO_BUCKET}
+      region:     auto
+      endpoint:   ${S3_TEMPO_ENDPOINT}
       access_key: ${S3_TEMPO_ACCESS_KEY_ID}
       secret_key: ${S3_TEMPO_SECRET_ACCESS_KEY}
