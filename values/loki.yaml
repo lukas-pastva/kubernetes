@@ -50,6 +50,7 @@ chunksCache:
       cpu: 300m
       memory: 1200Mi
 loki:
+  commonConfig:
     replication_factor: 1
   schemaConfig:
     configs:
