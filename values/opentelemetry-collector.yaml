@@ -70,7 +70,7 @@ extraObjects:
         debug:
           verbosity: normal
         otlp:
-          endpoint: opentelemetry-gateway.opentelemetry.svc.cluster.local:4317
+          endpoint: tempo-gateway.monitoring.svc.cluster.local:4317
           tls:
             insecure: true
       processors:

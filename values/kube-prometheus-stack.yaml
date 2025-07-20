@@ -41,12 +41,42 @@ grafana:
           uid: P5DCFC7561CCDE821
         - name: Tempo
           type: tempo
+          uid: tempo
           url: http://tempo-query-frontend.monitoring.svc.cluster.local:3200
           access: proxy
+          jsonData:
+            httpMethod: GET
+            serviceMap:
+              datasourceUid: P5DCFC7561CCDE821
+            tracesToMetrics:
+              datasourceUid: P5DCFC7561CCDE821
+              spanStartTimeShift: "-5m"
+              spanEndTimeShift:    "5m"
+              tags: [ service.name ]
+              queries:
+                - name: req_rate
+                  query: |
+                    sum(rate(http_server_requests_seconds_count{service="$service"}[5m]))
+            tracesToLogsV2:
+              datasourceUid: loki
+              filterByTraceID: true
+              filterBySpanID:  true
+              spanStartTimeShift: "-5m"
+              spanEndTimeShift:    "5m"
+              tags: [ service.name ]
+              customQuery: |
+                {service="$service"} |= "$traceId"
         - name: Loki
           type: loki
+          uid: loki
           url: http://loki-read.monitoring:3100
           access: proxy
+          jsonData:
+            derivedFields:
+              - name: traceID
+                matcherRegex: 'trace[_-]?id=(\w+)'
+                datasourceUid: tempo
+                url: '$${__value.raw}'
   plugins:
     - agenty-flowcharting-panel
     - camptocamp-prometheus-alertmanager-datasource
@@ -61,6 +91,8 @@ prometheus:
   thanosService:
     enabled: true
   prometheusSpec:
+    enableFeatures: ["exemplar-storage"]
+    enableOTLPReceiver: true    
     enableRemoteWriteReceiver: true
     thanos:
       image: quay.io/thanos/thanos:v0.32.2
