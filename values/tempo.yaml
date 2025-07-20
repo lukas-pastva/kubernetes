@@ -43,7 +43,7 @@ gateway:
     hosts:
       - host: tempo.tronic.sk
         paths:
-          - path: /
+          - path: /api
             pathType: Prefix
 
 distributor:
