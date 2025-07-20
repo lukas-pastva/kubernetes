@@ -3,6 +3,10 @@ query:
     - dnssrv+_grpc._tcp.kube-prometheus-stack-thanos-discovery.monitoring.svc.cluster.local:10901
   replicaLabel:
     - prometheus_replica
+  ingress:
+    enabled: true
+    hostname: thanos.tronic.sk
+    ingressClassName: "nginx"
 compactor:
   enabled: true
   persistence:
