@@ -5,6 +5,7 @@
 #  Changes in v3.1  (2025‑07‑21)
 #    • Step 5 adds automatic OCI fallback for Bitnami/other charts that are no
 #      longer distributed via HTTP Helm repos.
+#    • Path written into app‑of‑apps no longer includes leading “charts/”.
 #───────────────────────────────────────────────────────────────────────────────
 set -Eeuo pipefail
 [[ ${DEBUG:-false} == "true" ]] && set -x
@@ -45,7 +46,7 @@ fi
 # sanity checks ---------------------------------------------------------------
 for p in var_chart var_version var_namespace var_repo var_userValuesYaml; do
   [[ -z ${!p} ]] && { log "🚫  $p is empty – abort"; exit 1; }
- done
+done
 if [[ $STYLE == "name" && -z $var_name ]]; then
   log "🚫  STYLE=name but var_name is empty – abort"
   exit 1
@@ -87,14 +88,20 @@ values_file="${VALUES_SUBDIR}/${var_release}.yaml"
 
 if [[ $STYLE == "name" ]]; then
   chart_path="charts/external/${var_owner}/${var_chart}/${var_version}"
+  app_path="external/${var_owner}/${var_chart}/${var_version}"
 else
   chart_path="internal/charts/${var_team}/${var_applicationCode}/${var_version}"
+  app_path="internal/${var_team}/${var_applicationCode}/${var_version}"
 fi
+
+# Strip the *first* occurrence of “charts/” if it still exists
+app_path="${app_path/charts\/}"
 
 log "📁  Paths:"
 log "    • apps_file   = ${apps_file}"
 log "    • values_file = ${values_file}"
 log "    • chart_path  = ${chart_path}"
+log "    • app_path    = ${app_path}"
 
 ###############################################################################
 # 3) Clone repo
@@ -176,7 +183,8 @@ command -v yq >/dev/null || { log "❌  yq v4 required"; exit 1; }
 log "🛠  yq version: $(yq --version)"
 
 export VAR_NAMESPACE="$var_namespace"
-export CHART_PATH="$chart_path"
+export CHART_PATH="$chart_path"    # local cache path (still used later if needed)
+export APP_PATH="$app_path"        # path written into app‑of‑apps
 export GITOPS_REPO
 export VAR_NAME="$var_name"
 export VAR_APP_CODE="$var_applicationCode"
@@ -191,7 +199,7 @@ if [[ $STYLE == "name" ]]; then
       "applications": [{
         "name"      : env(VAR_NAME),
         "repoURL"   : env(GITOPS_REPO),
-        "path"      : env(CHART_PATH),
+        "path"      : env(APP_PATH),
         "autoSync"  : true,
         "valueFiles": true
       }]
@@ -205,7 +213,7 @@ else
         "applicationCode": env(VAR_APP_CODE),
         "team"           : env(VAR_TEAM),
         "env"            : env(VAR_ENV),
-        "path"           : env(CHART_PATH),
+        "path"           : env(APP_PATH),
         "rbac"           : {}
       }]
     }]'
