@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 #───────────────────────────────────────────────────────────────────────────────
-#  install.sh   –   v3.0  (namespace-only + dual app styles)
+#  install.sh   –   v3.1  (namespace‑only + dual app styles)
+#  ---------------------------------------------------------------------------
+#  Changes in v3.1  (2025‑07‑21)
+#    • Step 5 adds automatic OCI fallback for Bitnami/other charts that are no
+#      longer distributed via HTTP Helm repos.
 #───────────────────────────────────────────────────────────────────────────────
 set -Eeuo pipefail
 [[ ${DEBUG:-false} == "true" ]] && set -x
 
 log() { printf '\e[1;34m[%(%F %T)T]\e[0m %b\n' -1 "$*" >&2; }
 trap 'log "❌  FAILED (line $LINENO) 👉 «$BASH_COMMAND»"; exit 1' ERR
+
+# Just a nice separator so Argo's logs are readable
 echo -e "\n\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 
 ###############################################################################
@@ -39,7 +45,7 @@ fi
 # sanity checks ---------------------------------------------------------------
 for p in var_chart var_version var_namespace var_repo var_userValuesYaml; do
   [[ -z ${!p} ]] && { log "🚫  $p is empty – abort"; exit 1; }
-done
+ done
 if [[ $STYLE == "name" && -z $var_name ]]; then
   log "🚫  STYLE=name but var_name is empty – abort"
   exit 1
@@ -93,6 +99,9 @@ log "    • chart_path  = ${chart_path}"
 ###############################################################################
 # 3) Clone repo
 ###############################################################################
+# Use a temp dir so the SSH key never hits the disk layer we cache between pods
+###############################################################################
+
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 log "🐙  Cloning into ${tmp} …"
@@ -118,8 +127,9 @@ fi
 log "🌿  Using branch \e[1m$branch\e[0m"
 
 ###############################################################################
-# 4) Write values file
+# 4) Write values file (exact YAML from the workflow input)
 ###############################################################################
+
 mkdir -p "$(dirname "$apps_file")"
 [[ -f $apps_file ]] || { echo 'appProjects: []' > "$apps_file"; log "🆕  Created $apps_file"; }
 
@@ -128,14 +138,30 @@ printf '%s\n' "$var_userValuesYaml" > "$values_file"
 log "📝  Values → $values_file"
 
 ###############################################################################
-# 5) Download / cache Helm chart
+# 5) Download / cache Helm chart  (v3.1: OCI fallback)
 ###############################################################################
+
 if [[ -d $chart_path ]]; then
   log "📦  Chart already cached → $chart_path"
 else
   log "⬇️   helm pull → $chart_path"
   tempc="$(mktemp -d)"
-  helm pull "${var_chart}" --repo "${var_repo}" --version "${var_version}" -d "$tempc" > /dev/null
+
+  # First try classic HTTP/helm‑repo pull
+  if helm pull "${var_chart}" \
+        --repo "${var_repo}" \
+        --version "${var_version}" \
+        -d "$tempc" >/dev/null 2>&1
+  then
+    log "✅  Pulled via HTTP repo"
+  else
+    log "⚠️  HTTP pull failed, retrying as OCI (Bitnami switched to OCI)"
+    oci_ref="oci://registry-1.docker.io/bitnamicharts/${var_chart}"
+    helm pull "$oci_ref" \
+      --version "${var_version}" \
+      -d "$tempc"
+  fi
+
   tar -xzf "$tempc/${var_chart}-${var_version}.tgz" -C "$tempc"
   mkdir -p "$chart_path"
   mv "$tempc/${var_chart}/"* "$chart_path/"
@@ -191,6 +217,7 @@ yq eval -i "$yq_filter" "$apps_file"
 ###############################################################################
 # 7) Commit & push
 ###############################################################################
+
 git add "$apps_file" "$values_file" "$chart_path"
 git status --short
 
