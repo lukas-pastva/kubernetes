@@ -44,3 +44,45 @@ extraObjects:
           value: http://localhost:4317
         - name: OTEL_EXPORTER_OTLP_PROTOCOL
           value: grpc
+
+- apiVersion: opentelemetry.io/v1alpha1
+  kind: OpenTelemetryCollector
+  metadata:
+    name: otel-sidecar
+    namespace: ingress-nginx
+  spec:
+    mode: sidecar
+    config: |
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+      exporters:
+        debug: null
+        otlp:
+          endpoint: tempo-gateway.monitoring.svc.cluster.local:4317
+          tls:
+            insecure: true
+      processors:
+        batch: {}
+      service:
+        telemetry:
+          metrics:
+            readers:
+              - pull:
+                  exporter:
+                    prometheus:
+                      host: 0.0.0.0
+                      port: 8888
+        pipelines:
+          traces:
+            exporters:
+              - otlp
+              - debug
+            processors:
+              - batch
+            receivers:
+              - otlp

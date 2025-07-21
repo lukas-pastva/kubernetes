@@ -8,5 +8,10 @@ controller:
   ingressClassResource:
     default: true
   podAnnotations:
-    instrumentation.opentelemetry.io/inject-nginx: "true"
-    sidecar.opentelemetry.io/inject: opentelemetry/opentelemetry-sidecar
+    instrumentation.opentelemetry.io/inject-nginx: "ingress-nginx/opentelemetry"
+    sidecar.opentelemetry.io/inject: "true"
+  config:
+    enable-opentelemetry: "true"
+    otlp-collector-host: "localhost"
+    otlp-collector-port: "4317"
+    otel-service-name: "ingress-nginx"
