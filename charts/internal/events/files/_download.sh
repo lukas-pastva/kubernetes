@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 #───────────────────────────────────────────────────────────────────────────────
-#  download.sh  –  v1.1
-#  *For “Download Helm chart only” requests from Helm-Toggler*
+#  download.sh  –  v1.2  (2025‑07‑21)
+#  *For “Download Helm chart only” requests from Helm‑Toggler*
+#    • Adds graceful fallback to OCI registry when a repo index returns an
+#      OCI‑style URL that older Helm CLIs can’t resolve
 #───────────────────────────────────────────────────────────────────────────────
 set -Eeuo pipefail
 [[ ${DEBUG:-false} == "true" ]] && set -x
 
 log() { printf '\e[1;34m[%(%F %T)T]\e[0m %b\n' -1 "$*" >&2; }
 trap 'log "❌  FAILED (line $LINENO) 👉 «$BASH_COMMAND»"; exit 1' ERR
+
 echo -e "\n\e[1;33m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 
 ###############################################################################
@@ -43,7 +46,6 @@ log "🌐  GitOps repo: $GITOPS_REPO"
 # 2) Paths / settings
 ###############################################################################
 PUSH_BRANCH="${PUSH_BRANCH:-main}"
-
 chart_path="charts/external/${var_owner}/${var_chart}/${var_version}"
 log "📁  chart_path  = ${chart_path}"
 
@@ -75,7 +77,7 @@ fi
 log "🌿  Using branch \e[1m$branch\e[0m"
 
 ###############################################################################
-# 4) Download chart (if not cached)
+# 4) Download chart (if not cached) – with OCI fallback
 ###############################################################################
 if [[ -d $chart_path ]]; then
   log "✅  Chart already present → $chart_path  (nothing to do)"
@@ -84,9 +86,21 @@ fi
 
 log "⬇️   helm pull → $chart_path"
 tempc="$(mktemp -d)"
-helm pull "${var_chart}" --repo "${var_repo}" --version "${var_version}" -d "$tempc" > /dev/null
-tar -xzf "$tempc/${var_chart}-${var_version}.tgz" -C "$tempc"
 
+# Try normal repo pull first
+if ! helm pull "${var_chart}" --repo "${var_repo}" \
+            --version "${var_version}" -d "$tempc" 2> /tmp/helm.err; then
+  if grep -q "invalid_reference" /tmp/helm.err; then
+    log "🔄  Falling back to OCI registry for ${var_chart} ${var_version}"
+    helm pull "oci://registry-1.docker.io/bitnamicharts/${var_chart}" \
+              --version "${var_version}" -d "$tempc"
+  else
+    cat /tmp/helm.err >&2
+    exit 1
+  fi
+fi
+
+tar -xzf "$tempc/${var_chart}-${var_version}.tgz" -C "$tempc"
 mkdir -p "$chart_path"
 mv "$tempc/${var_chart}/"* "$chart_path/"
 rm -rf "$tempc"
@@ -97,8 +111,8 @@ log "🗃  Chart extracted"
 ###############################################################################
 git add "$chart_path"
 git status --short
-
 git commit -m "chore: cache ${var_chart} ${var_version}"
+
 log "📤  Pushing…"
 git push -u origin "$branch"
 
