@@ -8,13 +8,13 @@ extraObjects:
     valuesContent: |-
       operator:
         replicas: 1
-        prometheus:
+      prometheus:
+        enabled: true
+        serviceMonitor:
           enabled: true
-          serviceMonitor:
-            enabled: true
-            interval: 60s
-            labels:
-              release: kube-prometheus-stack
+          interval: 60s
+          labels:
+            release: kube-prometheus-stack
       hubble:
         enabled: true
         relay:
@@ -26,13 +26,18 @@ extraObjects:
               interval: 60s
               labels:
                 release: kube-prometheus-stack
+        ui:
+          enabled: true
+          standalone:
+            enabled: true
+
         metrics:
+          enableOpenMetrics: true
           serviceMonitor:
             enabled: true
             interval: 60s
             labels:
               release: kube-prometheus-stack
-          enableOpenMetrics: true
           enabled:
             - dns
             - drop
@@ -46,11 +51,3 @@ extraObjects:
             namespace: monitoring
             annotations:
               grafana_folder: "Hubble"
-      
-      prometheus:
-        enabled: true
-        serviceMonitor:
-          enabled: true
-          interval: 60s
-          labels:
-            release: kube-prometheus-stack
