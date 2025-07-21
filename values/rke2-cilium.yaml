@@ -33,12 +33,6 @@ extraObjects:
           ingress:
             enabled: true
             className: nginx
-            annotations:
-              nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-              nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-              nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-            hosts:
-              - hubble.tronic.sk
         metrics:
           enableOpenMetrics: true
           serviceMonitor:
