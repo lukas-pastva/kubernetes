@@ -45,7 +45,7 @@ appProjects:
         syncWave: '-2'
       - name: ingress-nginx
         repoURL: git@github.com:lukas-pastva/kubernetes.git
-        path: external/ingress-nginx/ingress-nginx/4.12.3
+        path: external/ingress-nginx/ingress-nginx/4.13.0
         autoSync: true
         valueFiles: true
         syncWave: '-1'
