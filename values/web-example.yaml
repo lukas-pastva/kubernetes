@@ -117,7 +117,7 @@ extraObjects:
 
       sampler:
         type: parentbased_traceidratio
-        argument: "0.25"
+        argument: "1.0" # TODO only for presentation "0.25"
   - apiVersion: opentelemetry.io/v1alpha1
     kind: OpenTelemetryCollector
     metadata:

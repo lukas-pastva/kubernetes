@@ -15,3 +15,5 @@ controller:
     otlp-collector-host: "localhost"
     otlp-collector-port: "4317"
     otel-service-name: "ingress-nginx"
+    otel-trust-incoming-span: "true"
+    otel-propagate-trace-context: "true"
