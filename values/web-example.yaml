@@ -104,6 +104,8 @@ extraObjects:
     metadata:
       name: opentelemetry
       namespace: web-example
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
     spec:
       exporter:
         endpoint: http://localhost:4318
@@ -121,6 +123,8 @@ extraObjects:
     metadata:
       name: otel-sidecar
       namespace: web-example
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
     spec:
       mode: sidecar
       config: |
