@@ -1,12 +1,4 @@
 appProjects:
-  - namespace: openebs
-    applications:
-      - name: openebs
-        repoURL: git@gitlab.com:tronic-sk/kubernetes.git
-        path: external/openebs/openebs/4.3.2
-        autoSync: true
-        valueFiles: true
-        syncWave: '-10'
   - namespace: metallb-system
     applications:
       - name: metallb
@@ -92,6 +84,14 @@ appProjects:
         autoSync: true
         valueFiles: true
         syncWave: '-1'
+  - namespace: openebs
+    applications:
+      - name: openebs
+        repoURL: git@gitlab.com:tronic-sk/kubernetes.git
+        path: external/openebs/openebs/4.3.2
+        autoSync: true
+        valueFiles: true
+        syncWave: '0'
   - namespace: rancher
     applications:
       - name: rancher
