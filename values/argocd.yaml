@@ -98,3 +98,10 @@ extraObjects:
       destination:
         namespace: argocd
         name: in-cluster
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
+          - Replace=true
