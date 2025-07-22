@@ -1,12 +1,19 @@
+# values.yaml  – kube‑prometheus‑stack
+# only fields that differ from the upstream defaults are shown
+
+# ────────────────────────────────────────────────────────────
+# 1. Core components we don’t want Prometheus to scrape
+# ────────────────────────────────────────────────────────────
 kubeControllerManager:
   serviceMonitor:
-    enabled: false 
+    enabled: false
 kubeEtcd:
   serviceMonitor:
-    enabled: false 
+    enabled: false
 kubeScheduler:
   serviceMonitor:
-    enabled: false 
+    enabled: false
+
 defaultRules:
   disabled:
     KubeControllerManagerDown: true
@@ -14,91 +21,120 @@ defaultRules:
     etcdMembersDown: true
     etcdInsufficientMembers: true
     KubeProxyDown: true
+
 crds:
   enabled: false
+
+# ────────────────────────────────────────────────────────────
+# 2. Alertmanager & Grafana ingress
+# ────────────────────────────────────────────────────────────
 alertmanager:
   ingress:
     enabled: true
-    hosts:
-      - alertmanager.tronic.sk
     ingressClassName: nginx
+    hosts: [alertmanager.tronic.sk]
+
 grafana:
   ingress:
     enabled: true
-    hosts:
-      - grafana.tronic.sk
     ingressClassName: nginx
+    hosts: [grafana.tronic.sk]
+
   admin:
-    existingSecret: "grafana-admin-secret"
+    existingSecret: grafana-admin-secret
+
+# ────────────────────────────────────────────────────────────
+# 3. Datasources – Prometheus, Loki & Tempo
+# ────────────────────────────────────────────────────────────
   datasources:
     datasources.yaml:
       apiVersion: 1
       datasources:
+        # ── Prometheus ───────────────────────────────────────
         - name: Prometheus
+          uid: prom
           type: prometheus
+          access: proxy
           url: http://thanos-query.monitoring:9090
+
+        # ── Loki ────────────────────────────────────────────
+        - name: Loki
+          uid: loki
+          type: loki
           access: proxy
-          uid: P5DCFC7561CCDE821
+          url: http://loki-read.monitoring:3100
+          jsonData:
+            derivedFields:
+              - name: trace_id
+                matcherRegex: '([A-Fa-f0-9]{32})$'
+                datasourceUid: tempo
+                url: '$${__value.raw}'
+
+        # ── Tempo ───────────────────────────────────────────
         - name: Tempo
-          type: tempo
           uid: tempo
-          url: http://tempo-query-frontend.monitoring.svc.cluster.local:3200
+          type: tempo
           access: proxy
+          url: http://tempo-query-frontend.monitoring.svc.cluster.local:3200
           jsonData:
             httpMethod: GET
             serviceMap:
-              datasourceUid: P5DCFC7561CCDE821
+              datasourceUid: prom        # service‑map comes from Prometheus
+
+            # click Trace → Metrics
             tracesToMetrics:
-              datasourceUid: P5DCFC7561CCDE821
+              datasourceUid: prom
               spanStartTimeShift: "-5m"
-              spanEndTimeShift:    "5m"
-              tags: [ service.name ]
+              spanEndTimeShift: "5m"
+              tags: [service.name]
               queries:
                 - name: req_rate
                   query: |
                     sum(rate(http_server_requests_seconds_count{service="$service"}[5m]))
+
+            # click Trace → Logs  (Grafana ≥ 10 syntax)
             tracesToLogsV2:
               datasourceUid: loki
-              filterByTraceID: true
-              filterBySpanID:  true
+              filterByTraceId: true
+              filterBySpanId: true
               spanStartTimeShift: "-5m"
-              spanEndTimeShift:    "5m"
-              tags: [ service.name ]
+              spanEndTimeShift: "5m"
+              tags:
+                - { key: 'service.name', value: 'service' }     # span attr → Loki label
               customQuery: |
                 {service="$service"} |= "$traceId"
-        - name: Loki
-          type: loki
-          uid: loki
-          url: http://loki-read.monitoring:3100
-          access: proxy
-          jsonData:
-            derivedFields:
-              - name: traceID
-                matcherRegex: 'trace[_-]?id=(\w+)'
-                datasourceUid: tempo
-                url: '$${__value.raw}'
+
   plugins:
     - agenty-flowcharting-panel
     - camptocamp-prometheus-alertmanager-datasource
     - grafana-athena-datasource
     - isovalent-hubble-datasource
+
+# ────────────────────────────────────────────────────────────
+# 4. Prometheus & Thanos sidecar
+# ────────────────────────────────────────────────────────────
 prometheus:
   ingress:
     enabled: true
-    hosts:
-      - prometheus.tronic.sk
     ingressClassName: nginx
+    hosts: [prometheus.tronic.sk]
+
   thanosService:
     enabled: true
+
   prometheusSpec:
     enableFeatures: ["exemplar-storage"]
-    enableOTLPReceiver: true    
+    enableOTLPReceiver: true
     enableRemoteWriteReceiver: true
+    walCompression: true          # saves ~50 % disk‑IO
     thanos:
       image: quay.io/thanos/thanos:v0.32.2
       objectStorageConfig:
-        key: "objstore.yml"
-        name: "monitoring-s3"
-    walCompression: false
+        name: monitoring-s3
+        key: objstore.yml
+
+# ────────────────────────────────────────────────────────────
+# 5. Operator stays enabled
+# ────────────────────────────────────────────────────────────
 prometheusOperator:
   enabled: true
