@@ -210,10 +210,3 @@ appProjects:
         path: external/k8s-csi-s3/csi-s3/0.43.0
         autoSync: true
         valueFiles: true
-  - namespace: wordpress
-    applications:
-      - name: wordpress
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
-        path: external/bitnami/wordpress/25.0.4
-        autoSync: true
-        valueFiles: true
