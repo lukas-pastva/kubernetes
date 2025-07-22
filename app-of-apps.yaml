@@ -52,7 +52,7 @@ appProjects:
   - namespace: openebs
     applications:
       - name: openebs
-        repoURL: git@gitlab.com:tronic-sk/kubernetes.git
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/openebs/openebs/4.3.2
         autoSync: true
         valueFiles: true
