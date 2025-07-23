@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #───────────────────────────────────────────────────────────────────────────────
 #  download.sh  –  v1.2  (2025‑07‑21)
-#  *For “Download Helm chart only” requests from Helm‑Toggler*
+#  *For “Download Helm chart only” requests from App-Manager*
 #    • Adds graceful fallback to OCI registry when a repo index returns an
 #      OCI‑style URL that older Helm CLIs can’t resolve
 #───────────────────────────────────────────────────────────────────────────────

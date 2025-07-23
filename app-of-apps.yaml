@@ -195,7 +195,7 @@ appProjects:
         autoSync: true
         valueFiles: true
         syncWave: '-1'
-      - name: argo-helm-toggler
+      - name: argo-app-manager
         repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true

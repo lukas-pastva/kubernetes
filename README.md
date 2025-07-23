@@ -136,13 +136,13 @@ fleet:
 
 ---
 
-## ⚙️ Integration with `argo-helm-toggler`
+## ⚙️ Integration with `argo-app-manager`
 
 **Purpose:**  
 An automated GitOps tool that allows easy Helm app deployment via ArgoCD App-of-Apps.
 
 **Scripts:**  
-- `_install.sh` is triggered by the frontend app (`argo-helm-toggler`) to add apps directly to GitOps.
+- `_install.sh` is triggered by the frontend app (`argo-app-manager`) to add apps directly to GitOps.
 - This script automatically disables Fleet by ensuring all apps are managed via GitOps (ArgoCD).
 
 ---
@@ -201,11 +201,11 @@ fleet:
 
 ---
 
-## 🚀 Workflow for App Installation (via `argo-helm-toggler`)
+## 🚀 Workflow for App Installation (via `argo-app-manager`)
 
 When installing new apps via the UI:
 
-1. User inputs app details in `argo-helm-toggler`.
+1. User inputs app details in `argo-app-manager`.
 2. `_install.sh` script:
    - Adds Helm chart to GitOps repo.
    - Updates `app-of-apps.yaml`.

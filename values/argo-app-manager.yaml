@@ -1,7 +1,7 @@
 deployments:
 
-  argo-helm-toggler:
-    image: lukaspastva/argo-helm-toggler:35915630cc54366843cb2bb3c82a189e06d010b0
+  argo-app-manager:
+    image: lukaspastva/argo-app-manager:51b7846517e20f0a0106bac5edf78c0ad17cfc55
     resources:
       limits:
         memory: 400Mi

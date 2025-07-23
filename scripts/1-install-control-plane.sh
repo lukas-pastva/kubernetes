@@ -242,7 +242,7 @@ for _app in $SELECTED_APPS; do
   [[ "$_app" == event-* ]] && has_event_app=true && break
 done
 
-if [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-helm-toggler[[:space:]]  ]] || \
+if [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-app-manager[[:space:]]  ]] || \
    [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-app-forge[[:space:]]     ]] || \
    [[ "$has_event_app" == "true" ]]; then
   kubectl get ns argo-workflows >/dev/null 2>&1 || kubectl create ns argo-workflows
