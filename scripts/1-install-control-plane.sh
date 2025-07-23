@@ -243,7 +243,6 @@ for _app in $SELECTED_APPS; do
 done
 
 if [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-app-manager[[:space:]]  ]] || \
-   [[  " ${SELECTED_APPS} " =~ [[:space:]]argo-app-forge[[:space:]]     ]] || \
    [[ "$has_event_app" == "true" ]]; then
   kubectl get ns argo-workflows >/dev/null 2>&1 || kubectl create ns argo-workflows
   cat <<EOF | kubectl apply -f -
