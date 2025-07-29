@@ -58,7 +58,7 @@ extraObjects:
     namespace: opentelemetry
   spec:
     mode: sidecar
-    config: |-
+    config: |
       receivers:
         otlp:
           protocols:
