@@ -28,8 +28,6 @@ extraObjects:
                 release: kube-prometheus-stack
         ui:
           enabled: true
-          standalone:
-            enabled: true
           ingress:
             enabled: true
             className: nginx
