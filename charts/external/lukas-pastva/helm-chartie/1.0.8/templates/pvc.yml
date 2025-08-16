@@ -1,0 +1,27 @@
+{{- range $item_name, $item := .Values.deployments }}
+{{- range $itemVolumes := $item.volumes }}
+{{- if or (eq $itemVolumes.type "openebs-hostpath") (eq $itemVolumes.type "openebs-device") (eq $itemVolumes.type "iscsi") (eq $itemVolumes.type "truenas-nfs") (eq $itemVolumes.type "vultr-hdd-retain") (eq $itemVolumes.type "vultr-hdd") (eq $itemVolumes.type "vultr") (eq $itemVolumes.type "rook-ceph-block") (eq $itemVolumes.type "csi-s3") (eq $itemVolumes.type "longhorn") }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $itemVolumes.name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ $itemVolumes.name }}
+  annotations:
+    volume.beta.kubernetes.io/storage-class: {{ if eq $itemVolumes.type "openebs-hostpath" }}"openebs-hostpath"{{ else if eq $itemVolumes.type "openebs-device" }}"openebs-device"{{ else if eq $itemVolumes.type "iscsi" }}"sys-truenas-iscsi"{{ else if eq $itemVolumes.type "truenas-nfs" }}"sys-truenas-nfs"{{ else if eq $itemVolumes.type "vultr-hdd-retain" }}"vultr-block-storage-hdd-retain"{{ else if eq $itemVolumes.type "vultr-hdd" }}"vultr-block-storage-hdd"{{ else if eq $itemVolumes.type "vultr" }}"vultr-block-storage"{{ else if eq $itemVolumes.type "rook-ceph-block" }}"rook-ceph-block"{{ else if eq $itemVolumes.type "csi-s3" }}"csi-s3"{{ else if eq $itemVolumes.type "longhorn" }}"longhorn"{{ end }}
+  {{ if or (eq $itemVolumes.type "rook-ceph-block") (eq $itemVolumes.type "longhorn") }}
+  finalizers:
+    - kubernetes.io/pvc-protection
+  {{ end }}
+spec:
+  storageClassName: {{ if eq $itemVolumes.type "iscsi" }}sys-truenas-iscsi{{ else if eq $itemVolumes.type "truenas-nfs" }}sys-truenas-nfs{{ else if eq $itemVolumes.type "vultr-hdd-retain" }}vultr-block-storage-hdd-retain{{ else if eq $itemVolumes.type "vultr-hdd" }}vultr-block-storage-hdd{{ else if eq $itemVolumes.type "vultr" }}vultr-block-storage{{ else if eq $itemVolumes.type "rook-ceph-block" }}rook-ceph-block{{ else if eq $itemVolumes.type "csi-s3" }}csi-s3{{ else if eq $itemVolumes.type "longhorn" }}longhorn{{ else }}csi-s3{{ end }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ if $itemVolumes.size }}{{ $itemVolumes.size }}{{ else }}1Gi{{ end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,5 +1,8 @@
-{{- range $appProject := .Values.appProjects }}
-  {{- range $application := $appProject.applications }}
+{{- $projectStep := 100 -}} {{/* large enough so waves don't collide across apps in a project */}}
+
+{{- range $pIdx, $appProject := .Values.appProjects }}
+  {{- $projectBase := mul $pIdx $projectStep }}
+  {{- range $aIdx, $application := $appProject.applications }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -7,40 +10,31 @@ metadata:
   name: {{ $application.name }}
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: {{ $application.syncWave | default "0" | quote }}
+    argocd.argoproj.io/sync-wave: {{ add $projectBase $aIdx | printf "%v" | quote }}
 spec:
   project: {{ $appProject.namespace }}
   sources:
-  - {{- if $application.repoURL }}
-    repoURL: {{ $application.repoURL }}
-    {{ end }}
-    targetRevision: {{ $application.targetRevision | default "main" }}
+  - targetRevision: {{ $application.targetRevision | default "main" }}
+    repoURL: {{ $application.repoURL | default $.Values.globals.repoURL | quote }}
     {{- if $application.path }}
     {{- if $application.directoryRecurse }}
     directory:
       recurse: true
-    {{ end }}
+    {{- end }}
     path: "charts/{{ $application.path }}"
-    {{ end }}
+    {{- end }}
     {{- if $application.chart }}
     chart: {{ $application.chart }}
-    {{ end }}
+    {{- end }}
     helm:
       {{- if $application.skipCrds }}
       skipCrds: true
-      {{ end }}
-      {{- if $application.valuesObject }}
-      valuesObject: {{ $application.valuesObject | toYaml | nindent 8 }}
-      {{ end }}
-      {{- if $application.valueFiles }}
+      {{- end }}
       valueFiles:
       - $values/values/{{ $application.name }}.yaml
-      {{- end }}
-  {{- if $application.valueFiles }}
-  - repoURL: git@github.com:lukas-pastva/kubernetes.git
+  - repoURL: {{ $.Values.globals.repoURL | quote }}
     targetRevision: main
     ref: values
-  {{ end }}
   destination:
     namespace: {{ $appProject.namespace }}
     name: in-cluster
@@ -49,11 +43,20 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    {{ end }}
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
     syncOptions:
-      - CreateNamespace=false
+    - CreateNamespace=false
+    - PruneLast=true
+    - ApplyOutOfSyncOnly=true
+    - RespectIgnoreDifferences=true
+    {{- end }}
     {{- if $application.replace }}
-      - Replace=true
-    {{ end }}
+    - Replace=true
+    {{- end }}
   {{- end }}
 {{- end }}

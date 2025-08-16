@@ -1,0 +1,54 @@
+{{- range $item_name, $item := .Values.deployments }}
+  {{- range $itemPorts := $item.ports }}
+    {{- if $itemPorts.domains }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $item_name }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+      {{- if $itemPorts.auth }}
+    nginx.ingress.kubernetes.io/auth-realm: Authentication Required
+    nginx.ingress.kubernetes.io/auth-secret: secret-{{ $item_name }}-{{ $itemPorts.name }}
+    nginx.ingress.kubernetes.io/auth-type: basic
+      {{- end }}
+      {{- if $itemPorts.oauth2 }}
+    nginx.ingress.kubernetes.io/auth-url: "https://{{ $itemPorts.oauth2 }}/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://{{ $itemPorts.oauth2 }}/oauth2/start?rd=$scheme://$http_host$request_uri"
+      {{- end }}
+      {{- if $itemPorts.annotations }}{{- $itemPorts.annotations | toYaml | nindent 4 }}{{- end }}
+spec:
+  ingressClassName: {{ default "nginx" $itemPorts.ingressClassName }}
+      {{- if $itemPorts.tls }}
+  tls:
+{{ $itemPorts.tls | toYaml | indent 4 }}
+      {{- end }}
+  rules:
+      {{- range $indexDomain, $domain := $itemPorts.domains }}
+    - host: {{ $domain }}
+      http:
+        paths:
+        {{- range $indexPath, $path := $itemPorts.paths }}
+          - backend:
+              service:
+                name: {{ $item_name }}
+                port:
+                  number: {{- if $itemPorts.portIngress }} {{ $itemPorts.portIngress }}{{ else }} {{ $itemPorts.port }}{{- end }} 
+            path: {{ $path }}
+            pathType: Prefix
+        {{- end }}
+      {{- end }}
+      {{- if $itemPorts.auth }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-{{ $item_name }}-{{ $itemPorts.name }}
+  namespace: {{ $.Release.Namespace }}
+data:
+  auth: {{ $itemPorts.auth }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
