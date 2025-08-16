@@ -89,6 +89,7 @@ extraObjects:
     spec:
       project: default
       source:
+        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: charts/internal/app-of-apps
         targetRevision: main
         helm:
