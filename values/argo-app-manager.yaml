@@ -40,7 +40,7 @@ deployments:
       - name: WF_DOWNLOAD_WEBHOOK_URL
         value: "http://event-download-eventsource-svc.argo-workflows.svc.cluster.local:12000"
       - name: APPS_GLOB
-        value: "app-of-apps.yaml"
+        value: "applications.yaml"
       - name: VALUES_SUBDIR
         value: "values"
       

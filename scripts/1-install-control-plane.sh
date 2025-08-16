@@ -212,7 +212,7 @@ spec:
     targetRevision: main
     helm:
       valueFiles:
-      - ../../../app-of-apps.yaml
+      - ../../../applications.yaml
   destination:
     name: in-cluster
     namespace: argocd

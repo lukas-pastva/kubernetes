@@ -18,7 +18,7 @@ This is an internal GitOps-based Kubernetes platform integrating **RKE2**, **Ran
 
 ```
 argocd/
-  ├── app-of-apps.yaml
+  ├── applications.yaml
   └── README.md
 
 charts/
@@ -208,7 +208,7 @@ When installing new apps via the UI:
 1. User inputs app details in `argo-app-manager`.
 2. `_install.sh` script:
    - Adds Helm chart to GitOps repo.
-   - Updates `app-of-apps.yaml`.
+   - Updates `applications.yaml`.
    - Commits & pushes to Git.
 3. ArgoCD auto-syncs the app from Git to Kubernetes.
 

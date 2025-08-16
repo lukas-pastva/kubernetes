@@ -1,234 +1,138 @@
+globals:
+  repoURL: git@github.com:lukas-pastva/kubernetes.git
+  
+
 appProjects:
   - namespace: kube-system
     applications:
       - name: rke2-cilium
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
-        valueFiles: true
-        syncWave: '-11'
   - namespace: opentelemetry
     applications:
       - name: opentelemetry-operator
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/opentelemetry-helm/opentelemetry-operator/0.91.1
         autoSync: true
-        valueFiles: true
-        syncWave: '-10'
       - name: opentelemetry-collector
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
-        valueFiles: true
-        syncWave: '-9'
   - namespace: rancher
     applications:
       - name: rancher
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/rancher-stable/rancher/2.11.3
         autoSync: true
-        valueFiles: true
-        syncWave: '-8'
   - namespace: openebs
     applications:
       - name: openebs
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/openebs/openebs/4.3.2
         autoSync: true
-        valueFiles: true
-        syncWave: '-7'
   - namespace: metallb-system
     applications:
       - name: metallb
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/metallb/metallb/0.15.2
         autoSync: true
-        valueFiles: true
-        syncWave: '-6'
       - name: metallb-iap
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
-        valueFiles: true
-        syncWave: '-5'
   - namespace: monitoring
     applications:
       - name: kube-prometheus-stack-crds
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: >-
           external/prometheus-community/kube-prometheus-stack/75.9.0/charts/crds/crds
         autoSync: true
         replace: true
-        syncWave: '-4'
       - name: kube-prometheus-stack
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/prometheus-community/kube-prometheus-stack/75.9.0
         autoSync: true
-        valueFiles: true
         skipCrds: true
-        syncWave: '-3'
       - name: promtail
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/grafana/promtail/6.17.0
         autoSync: true
-        valueFiles: true
-        syncWave: '-3'
       - name: loki
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/grafana/loki/6.30.1
         autoSync: true
-        valueFiles: true
-        syncWave: '-3'
       - name: thanos
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/bitnami/thanos/17.2.1
         autoSync: true
-        valueFiles: true
-        syncWave: '-3'
       - name: tempo
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/grafana/tempo-distributed/1.45.0
         autoSync: true
-        valueFiles: true
-        syncWave: '-3'
   - namespace: ingress-nginx
     applications:
       - name: ingress-nginx-extra
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
-        valueFiles: true
-        syncWave: '-2'
       - name: ingress-nginx
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/ingress-nginx/ingress-nginx/4.13.0
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
   - namespace: oauth2-google
     applications:
       - name: oauth2-google
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/oauth2-proxy/oauth2-proxy/7.9.0
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
   - namespace: argocd
     applications:
       - name: argocd
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/argo/argo-cd/8.1.2
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
   - namespace: argo-workflows
     applications:
       - name: argo-events
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/argo/argo-events/2.4.15
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: argo-workflows
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/argo/argo-workflows/0.45.19
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: argo-workflows-ui
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-backup-gl
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-backup-gh
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-backup-k8s
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-stop
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-deploy
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-install
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-upgrade
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-download
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: event-delete
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: internal/events
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
       - name: argo-app-manager
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
   - namespace: cert-manager
     applications:
       - name: cert-manager
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/cert-manager/cert-manager/1.18.2
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
   - namespace: csi-s3
     applications:
       - name: csi-s3
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/k8s-csi-s3/csi-s3/0.43.0
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
   - namespace: ingress-browser
     applications:
       - name: ingress-browser
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
-        valueFiles: true
-        syncWave: '-1'
   - namespace: web-example
     applications:
       - name: web-example
-        repoURL: git@github.com:lukas-pastva/kubernetes.git
         path: external/lukas-pastva/helm-chartie/1.0.8
         autoSync: true
-        valueFiles: true
